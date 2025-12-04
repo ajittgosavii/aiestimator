@@ -82,26 +82,18 @@ class ComprehensivePDFGenerator:
             bulletIndent=10
         ))
     
-    def _create_pie_chart(self, data_dict, title="Cost Distribution"):
-        """Create a properly aligned professional pie chart"""
-        drawing = Drawing(500, 250)  # Increased size
+    def _create_cost_distribution_chart(self, data_dict, title="Cost Distribution"):
+        """Create a professional horizontal stacked bar chart for cost distribution"""
+        drawing = Drawing(500, 300)
         
         labels = list(data_dict.keys())
         values = list(data_dict.values())
+        total = sum(values)
         
-        # Create pie chart - centered properly
-        pie = Pie()
-        pie.x = 150  # Centered position
-        pie.y = 50
-        pie.width = 180
-        pie.height = 180
-        pie.data = values
-        pie.labels = [f'{label}\n${value:,.0f}' for label, value in zip(labels, values)]
-        pie.slices.strokeWidth = 0.5
-        pie.slices.fontName = 'Helvetica'
-        pie.slices.fontSize = 8
+        # Calculate percentages
+        percentages = [(v/total)*100 if total > 0 else 0 for v in values]
         
-        # Professional color scheme
+        # Colors
         colors_scheme = [
             colors.HexColor('#1f77b4'),  # Blue
             colors.HexColor('#ff7f0e'),  # Orange
@@ -113,16 +105,56 @@ class ComprehensivePDFGenerator:
             colors.HexColor('#7f7f7f'),  # Gray
         ]
         
-        for i, color in enumerate(colors_scheme[:len(values)]):
-            pie.slices[i].fillColor = color
+        # Create horizontal bars
+        y_position = 250
+        x_start = 50
+        bar_width = 400
+        bar_height = 40
         
-        # Add centered title
-        from reportlab.graphics.shapes import String
-        title_string = String(250, 230, title, fontSize=12, fontName='Helvetica-Bold', 
+        # Title
+        from reportlab.graphics.shapes import String, Rect
+        title_string = String(250, 280, title, fontSize=12, fontName='Helvetica-Bold',
                              textAnchor='middle', fillColor=colors.HexColor('#1f77b4'))
-        
-        drawing.add(pie)
         drawing.add(title_string)
+        
+        # Draw stacked bars
+        current_x = x_start
+        for i, (label, value, pct) in enumerate(zip(labels, values, percentages)):
+            if pct > 0:
+                segment_width = (pct / 100) * bar_width
+                
+                # Draw rectangle
+                rect = Rect(current_x, y_position, segment_width, bar_height,
+                           fillColor=colors_scheme[i % len(colors_scheme)],
+                           strokeColor=colors.white,
+                           strokeWidth=1)
+                drawing.add(rect)
+                
+                # Add label inside bar if space permits
+                if segment_width > 30:
+                    label_text = String(current_x + segment_width/2, y_position + bar_height/2,
+                                      f"{pct:.1f}%", fontSize=8, fontName='Helvetica-Bold',
+                                      textAnchor='middle', fillColor=colors.white)
+                    drawing.add(label_text)
+                
+                current_x += segment_width
+        
+        # Add legend below
+        legend_y = 210
+        legend_x = 50
+        for i, (label, value) in enumerate(zip(labels, values)):
+            # Color box
+            box = Rect(legend_x, legend_y - (i * 20), 12, 12,
+                      fillColor=colors_scheme[i % len(colors_scheme)],
+                      strokeColor=colors.black, strokeWidth=0.5)
+            drawing.add(box)
+            
+            # Label
+            label_text = String(legend_x + 18, legend_y - (i * 20) + 3,
+                              f"{label}: ${value:,.0f} ({percentages[i]:.1f}%)",
+                              fontSize=9, fontName='Helvetica',
+                              textAnchor='start', fillColor=colors.black)
+            drawing.add(label_text)
         
         return drawing
     
@@ -180,27 +212,45 @@ class ComprehensivePDFGenerator:
         return elements
     
     def _create_table_of_contents(self):
-        """Create table of contents"""
+        """Create table of contents with proper alignment"""
         elements = []
         
         elements.append(Paragraph("Table of Contents", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.2*inch))
         
-        toc_content = """
-        <b>Section 1:</b> Executive Summary ................................................... Page 2<br/>
-        <b>Section 2:</b> Methodology & Assumptions .......................................... Page 3<br/>
-        <b>Section 3:</b> Detailed Cost Analysis .............................................. Page 5<br/>
-        <b>Section 4:</b> Return on Investment Analysis ....................................... Page 9<br/>
-        <b>Section 5:</b> Risk Assessment & Mitigation ........................................ Page 11<br/>
-        <b>Section 6:</b> Implementation Roadmap .............................................. Page 13<br/>
-        <b>Section 7:</b> Technology Stack Recommendations ..................................... Page 15<br/>
-        <b>Section 8:</b> Governance & Compliance Framework .................................... Page 17<br/>
-        <b>Section 9:</b> Change Management Strategy .......................................... Page 18<br/>
-        <b>Section 10:</b> Success Metrics & KPIs ............................................. Page 19<br/>
-        <b>Section 11:</b> Industry Benchmarks ................................................ Page 20<br/>
-        <b>Appendices:</b> Supporting Data & References ....................................... Page 22
-        """
+        # Create TOC as a properly formatted table
+        toc_data = [
+            ['Section 1:', 'Executive Summary', 'Page 2'],
+            ['Section 2:', 'Methodology & Assumptions', 'Page 3'],
+            ['Section 3:', 'Detailed Cost Analysis', 'Page 5'],
+            ['Section 4:', 'Return on Investment Analysis', 'Page 9'],
+            ['Section 5:', 'Risk Assessment & Mitigation', 'Page 11'],
+            ['Section 6:', 'Implementation Roadmap', 'Page 13'],
+            ['Section 7:', 'Technology Stack Recommendations', 'Page 15'],
+            ['Section 8:', 'Governance & Compliance Framework', 'Page 17'],
+            ['Section 9:', 'Change Management Strategy', 'Page 18'],
+            ['Section 10:', 'Success Metrics & KPIs', 'Page 19'],
+            ['Section 11:', 'Industry Benchmarks', 'Page 20'],
+            ['Appendices:', 'Supporting Data & References', 'Page 22']
+        ]
         
-        elements.append(Paragraph(toc_content, self.styles['CustomBody']))
+        toc_table = Table(toc_data, colWidths=[1*inch, 4.5*inch, 1*inch])
+        toc_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#1f77b4')),
+            ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#1f77b4')),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc'))
+        ]))
+        
+        elements.append(toc_table)
         elements.append(PageBreak())
         
         return elements
@@ -412,11 +462,12 @@ class ComprehensivePDFGenerator:
         elements.append(cost_table)
         elements.append(Spacer(1, 0.3*inch))
         
-        # Add pie chart if we have breakdown
+        # Add cost distribution chart if we have breakdown
         if has_breakdowns:
             elements.append(Paragraph("3.2 Year 1 Cost Distribution", self.styles['SubsectionHeader']))
-            pie_chart = self._create_pie_chart(cost_data['year1_breakdown'], "Year 1 Cost Breakdown by Category")
-            elements.append(pie_chart)
+            cost_chart = self._create_cost_distribution_chart(cost_data['year1_breakdown'], 
+                                                              "Year 1 Cost Breakdown by Category")
+            elements.append(cost_chart)
             elements.append(Spacer(1, 0.2*inch))
         
         # Add bar chart
