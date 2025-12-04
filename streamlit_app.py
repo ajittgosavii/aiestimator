@@ -290,10 +290,11 @@ st.markdown("---")
 col1, col2, col3 = st.columns([1, 2, 1])
 
 with col2:
-    mode = st.segmented_control(
+    mode = st.radio(
         "Select Mode",
         options=["🎓 Demo Mode", "💼 Live Mode"],
-        default="💼 Live Mode" if st.session_state.app_mode == 'Live' else "🎓 Demo Mode",
+        index=0 if st.session_state.app_mode == 'Demo' else 1,
+        horizontal=True,
         help="Demo Mode: See a complete example with sample data | Live Mode: Enter your own data"
     )
     
