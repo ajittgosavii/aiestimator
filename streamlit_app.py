@@ -290,11 +290,10 @@ st.markdown("---")
 col1, col2, col3 = st.columns([1, 2, 1])
 
 with col2:
-    mode = st.radio(
+    mode = st.segmented_control(
         "Select Mode",
         options=["🎓 Demo Mode", "💼 Live Mode"],
-        index=0 if st.session_state.app_mode == 'Demo' else 1,
-        horizontal=True,
+        default="💼 Live Mode" if st.session_state.app_mode == 'Live' else "🎓 Demo Mode",
         help="Demo Mode: See a complete example with sample data | Live Mode: Enter your own data"
     )
     
@@ -325,22 +324,12 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-# Enable auto-save functionality
-enable_auto_save(interval_seconds=30)
-
-# Save/Load UI
-st.markdown("---")
-render_save_load_ui()
-st.markdown("---")
-
 # Create centered tabs for navigation
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Overview", 
     "💰 Cost Analysis", 
     "📈 ROI Calculator", 
-    "⚠️ Risk Assessment",
-    "🤖 AI Recommendations",
-    "🔄 Comparison Mode", 
+    "⚠️ Risk Assessment", 
     "📋 Summary Report"
 ])
 
@@ -481,6 +470,170 @@ with tab2:
         expected_users = st.number_input("Expected Active Users", 
             min_value=1, 
             value=int(get_demo_value('org_profile', 'expected_users', 100)))
+    
+    st.markdown("---")
+    
+
+    st.markdown("---")
+    
+    # Cost Estimation Help Section
+    st.subheader("💡 Need Help Estimating Costs?")
+    st.markdown("**New to Gen AI costing? We'll help you estimate each field with industry benchmarks and smart defaults.**")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🎯 Use Smart Defaults", type="primary", help="Auto-fill with industry-standard estimates"):
+            # Smart defaults based on org profile
+            use_case_multipliers = {
+                'Customer Service/Chatbots': 30, 'Content Generation': 10,
+                'Code Assistance': 25, 'Data Analysis': 15,
+                'Document Processing': 8, 'Knowledge Management': 12,
+                'Multiple Use Cases': 20
+            }
+            
+            smart_requests = int(expected_users * use_case_multipliers.get(use_case, 20))
+            
+            use_case_tokens = {
+                'Customer Service/Chatbots': 1800, 'Content Generation': 4500,
+                'Code Assistance': 3000, 'Data Analysis': 3500,
+                'Document Processing': 5000, 'Knowledge Management': 2500,
+                'Multiple Use Cases': 2500
+            }
+            
+            smart_tokens = use_case_tokens.get(use_case, 2000)
+            
+            industry_costs = {
+                'Financial Services': 18.0, 'Healthcare': 18.0, 'Government': 20.0,
+                'Technology': 12.0, 'Manufacturing': 12.0, 'Retail': 15.0, 'Other': 15.0
+            }
+            
+            smart_cost_per_m = industry_costs.get(industry, 15.0)
+            
+            maturity_infra = {
+                'Exploring': 1500, 'Pilot': 5000, 'Scaling': 15000, 'Mature': 50000
+            }
+            
+            smart_infra = maturity_infra.get(maturity, 5000)
+            
+            size_dev = {
+                '<100': 250000, '100-500': 450000, '500-1000': 700000,
+                '1000-5000': 1200000, '5000+': 2500000
+            }
+            
+            smart_dev = size_dev.get(org_size, 450000)
+            
+            st.session_state.smart_defaults = {
+                'requests_per_day': smart_requests,
+                'avg_tokens': smart_tokens,
+                'cost_per_million': smart_cost_per_m,
+                'monthly_infrastructure': smart_infra,
+                'annual_development': smart_dev
+            }
+            
+            st.success(f"✅ Smart defaults loaded for {industry}, {maturity} stage!")
+            st.info(f"📊 {smart_requests:,} requests/day, {smart_tokens:,} tokens, ${smart_cost_per_m}/M")
+    
+    with col2:
+        if st.button("📚 Estimation Guide"):
+            st.session_state.show_guide = not st.session_state.get('show_guide', False)
+    
+    with col3:
+        if st.button("💰 Cost Ranges"):
+            st.session_state.show_ranges = not st.session_state.get('show_ranges', False)
+    
+    # Estimation Guide
+    if st.session_state.get('show_guide', False):
+        with st.expander("📚 How to Estimate Costs", expanded=True):
+            st.markdown("### Quick Guide to Gen AI Cost Estimation")
+            
+            st.markdown("#### 1. API Costs")
+            st.markdown("**Requests per Day:** Users × Requests per user")
+            st.markdown("- Chatbot: 20-50 requests/user/day")
+            st.markdown("- Content: 5-15 requests/user/day")
+            st.markdown("- Code: 15-40 requests/user/day")
+            
+            st.markdown("**Tokens:** 1 word ≈ 1.3 tokens, or 4 chars = 1 token")
+            st.markdown("- Short: 500-1,500 tokens")
+            st.markdown("- Medium: 1,500-3,000 tokens")
+            st.markdown("- Long: 3,000-8,000 tokens")
+            
+            st.markdown("**Provider Pricing (per million tokens):**")
+            st.markdown("- GPT-4: $30 | Claude: $15 | GPT-3.5: $2")
+            
+            st.markdown("#### 2. Infrastructure")
+            st.markdown("**By Maturity:**")
+            st.markdown("- Exploring: $500-$2K/mo")
+            st.markdown("- Pilot: $2K-$8K/mo")
+            st.markdown("- Scaling: $8K-$25K/mo")
+            st.markdown("- Mature: $25K-$100K/mo")
+            
+            st.markdown("#### 3. Development")
+            st.markdown("**Team by Stage:**")
+            st.markdown("- Exploring: 1-2 FTE")
+            st.markdown("- Pilot: 2-5 FTE")
+            st.markdown("- Scaling: 5-10 FTE")
+            st.markdown("- Mature: 10-30 FTE")
+            
+            st.markdown("**Salaries:** ML Engineer $140K-$180K, Backend $120K-$160K")
+    
+    # Cost Ranges
+    if st.session_state.get('show_ranges', False):
+        with st.expander("💰 Industry Benchmarks", expanded=True):
+            tabs = st.tabs(["By Industry", "By Maturity", "By Use Case"])
+            
+            with tabs[0]:
+                st.markdown("### Industry Cost Factors")
+                industry_df = pd.DataFrame({
+                    'Industry': ['Financial', 'Healthcare', 'Tech', 'Retail'],
+                    'Security Factor': ['1.4x', '1.5x', '1.1x', '1.2x'],
+                    'Requirements': ['SOC2, PCI', 'HIPAA', 'Standard', 'PCI']
+                })
+                st.dataframe(industry_df, hide_index=True)
+            
+            with tabs[1]:
+                st.markdown("### Costs by Maturity")
+                maturity_df = pd.DataFrame({
+                    'Stage': ['Exploring', 'Pilot', 'Scaling', 'Mature'],
+                    'Infrastructure': ['$500-$2K/mo', '$2K-$8K/mo', '$8K-$25K/mo', '$25K-$100K/mo'],
+                    'Development': ['$150K-$400K', '$400K-$800K', '$800K-$2M', '$2M-$5M']
+                })
+                st.dataframe(maturity_df, hide_index=True)
+            
+            with tabs[2]:
+                st.markdown("### Cost Patterns by Use Case")
+                case_df = pd.DataFrame({
+                    'Use Case': ['Customer Service', 'Content', 'Code', 'Documents'],
+                    'Req/User/Day': ['20-50', '5-15', '15-40', '5-20'],
+                    'Tokens': ['1.5K-2.5K', '3K-6K', '2K-4K', '4K-8K']
+                })
+                st.dataframe(case_df, hide_index=True)
+    
+    # API Calculator
+    with st.expander("🧮 API Cost Calculator"):
+        calc_col1, calc_col2 = st.columns(2)
+        
+        with calc_col1:
+            calc_users = st.number_input("Users:", 1, 100000, 100, key="cu")
+            calc_req = st.number_input("Req/user/day:", 1, 200, 20, key="cr")
+            calc_tokens = st.number_input("Tokens/req:", 100, 20000, 1500, key="ct")
+        
+        with calc_col2:
+            calc_cost = st.number_input("$/M tokens:", 1.0, 100.0, 15.0, key="cc")
+            calc_growth = st.number_input("Growth %:", 0, 200, 25, key="cg")
+        
+        daily_req = calc_users * calc_req
+        monthly_cost = (daily_req * 30 * calc_tokens / 1000000) * calc_cost
+        year1 = monthly_cost * 12
+        year2 = year1 * (1 + calc_growth/100)
+        year3 = year2 * (1 + calc_growth/100)
+        
+        st.markdown("### Results")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Daily Req", f"{daily_req:,}")
+        c2.metric("Monthly", f"${monthly_cost:,.0f}")
+        c3.metric("Year 1", f"${year1:,.0f}")
+        c4.metric("3-Year", f"${(year1+year2+year3):,.0f}")
     
     st.markdown("---")
     
@@ -707,26 +860,6 @@ with tab2:
     year3_total = year3_subtotal + year3_contingency
     
     three_year_tco = year1_total + year2_total + year3_total
-    
-    # Validate inputs
-    try:
-        cost_inputs = {
-            'org_name': org_name,
-            'avg_tokens_per_request': avg_tokens_per_request,
-            'requests_per_day': requests_per_day,
-            'cost_per_million_tokens': cost_per_million_tokens,
-            'growth_rate': growth_rate,
-            'contingency_pct': contingency_pct
-        }
-        errors, warnings = validate_cost_inputs(cost_inputs)
-        if errors:
-            for error in errors:
-                st.error(f"❌ {error}")
-        if warnings:
-            for warning in warnings:
-                st.warning(f"⚠️ {warning}")
-    except Exception as e:
-        pass  # Validation is optional
     
     # Store in session state
     st.session_state.cost_data = {
