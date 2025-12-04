@@ -1470,25 +1470,54 @@ with tab7:
                 st.metric("Payback", f"{st.session_state.roi_data.get('payback_months', 0)} months")
         
         st.markdown("---")
-        st.subheader("📥 Export")
+        st.subheader("📥 Export Report")
         
-        # CSV Export
-        summary_data = pd.DataFrame({
-            'Metric': ['3-Year TCO', 'ROI %', 'Payback'],
-            'Value': [
-                f"${cost_data.get('three_year_tco', 0):,.0f}",
-                f"{st.session_state.get('roi_data', {}).get('roi_percentage', 0):.0f}%",
-                f"{st.session_state.get('roi_data', {}).get('payback_months', 0)} months"
-            ]
-        })
+        # PDF Export
+        col1, col2, col3 = st.columns(3)
         
-        csv = summary_data.to_csv(index=False)
-        st.download_button(
-            "📊 Download CSV",
-            csv,
-            file_name=f"genai_roi_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv"
-        )
+        with col1:
+            if st.button("📄 Generate PDF Report", type="primary", use_container_width=True, key="generate_pdf_btn"):
+                with st.spinner("Generating comprehensive PDF report..."):
+                    try:
+                        # Import PDF generator
+                        import sys
+                        sys.path.append('/mnt/user-data/outputs')
+                        from pdf_report_generator import generate_pdf_report
+                        
+                        # Generate PDF
+                        pdf_bytes = generate_pdf_report(
+                            cost_data=cost_data,
+                            roi_data=st.session_state.get('roi_data', {}),
+                            risk_data=st.session_state.get('risk_data', {})
+                        )
+                        
+                        # Store in session state for download
+                        st.session_state.pdf_report = pdf_bytes
+                        st.success("✅ PDF report generated successfully!")
+                    except Exception as e:
+                        st.error(f"Error generating PDF: {str(e)}")
+                        st.info("💡 Tip: Make sure reportlab is installed: `pip install reportlab`")
+        
+        # Download button (appears after PDF is generated)
+        if 'pdf_report' in st.session_state:
+            with col2:
+                st.download_button(
+                    label="📥 Download PDF Report",
+                    data=st.session_state.pdf_report,
+                    file_name=f"GenAI_Investment_Analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                    key="download_pdf_btn"
+                )
+        
+        with col3:
+            st.markdown("**Professional PDF report includes:**")
+            st.markdown("• Executive summary")
+            st.markdown("• Detailed cost breakdown")
+            st.markdown("• ROI analysis")
+            st.markdown("• Risk assessment")
+            st.markdown("• Strategic recommendations")
 
 # Professional Footer
 st.markdown("---")
