@@ -5,19 +5,47 @@ import plotly.express as px
 from datetime import datetime
 import json
 
-# NEW IMPORTS - Add these:
-from save_load_manager import ScenarioManager, render_save_load_ui, enable_auto_save
-from input_validation import (
-    InputValidator, 
-    validate_cost_inputs, 
-    validate_roi_inputs,
-    validate_before_calculation,
-    show_validation_summary
-)
-from comparison_mode import ScenarioComparator, render_comparison_mode
-from industry_benchmarks import render_benchmark_analysis, INDUSTRY_BENCHMARKS
-from optimization_engine import generate_optimization_recommendations, calculate_optimization_roi
-from calculator_helpers import DEMO_DATA, DEMO_ROI_DATA, calculate_intelligent_risks
+# Helper modules temporarily disabled - using built-in functionality
+# from save_load_manager import ScenarioManager, render_save_load_ui, enable_auto_save
+# from input_validation import (
+#     InputValidator, 
+#     validate_cost_inputs, 
+#     validate_roi_inputs,
+#     validate_before_calculation,
+#     show_validation_summary
+# )
+# from comparison_mode import ScenarioComparator, render_comparison_mode
+# from industry_benchmarks import render_benchmark_analysis, INDUSTRY_BENCHMARKS
+# from optimization_engine import generate_optimization_recommendations, calculate_optimization_roi
+# from calculator_helpers import DEMO_DATA, DEMO_ROI_DATA, calculate_intelligent_risks
+
+# Demo data - inline for now
+DEMO_DATA = {
+    'org_name': 'TechCorp Solutions',
+    'industry': 'Technology',
+    'use_case': 'Customer Service/Chatbots',
+    'year1_total': 2245993,
+    'year2_total': 2343190,
+    'year3_total': 2514331,
+    'three_year_tco': 7103513,
+    'year1_breakdown': {
+        'API Costs': 78038,
+        'Infrastructure': 60000,
+        'Development': 960000,
+        'Data Management': 280000,
+        'Operations': 350000,
+        'Organizational': 225000,
+        'Contingency': 292956
+    }
+}
+
+DEMO_ROI_DATA = {
+    'roi_percentage': 63.4,
+    'payback_months': 1,
+    'npv': 0,
+    'total_benefits': 0,
+    'total_costs': 0
+}
 
 # Page configuration
 st.set_page_config(
@@ -334,12 +362,13 @@ render_save_load_ui()
 st.markdown("---")
 
 # Create centered tabs for navigation
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "📊 Overview", 
     "💰 Cost Analysis", 
     "📈 ROI Calculator", 
     "⚠️ Risk Assessment",
     "🤖 AI Recommendations",
+    "🔍 Model Selector",
     "🔄 Comparison Mode", 
     "📋 Summary Report"
 ])
@@ -1194,37 +1223,43 @@ with tab4:
     if 'cost_data' not in st.session_state:
         st.warning("⚠️ Please complete the Cost Analysis tab first to enable risk assessment.")
     else:
-        col1, col2 = st.columns(2)
+        # NOTE: AI-Powered Risk Assessment feature temporarily disabled
+        # Requires ai_risk_assessment module which is not yet implemented
         
-        with col1:
-            if st.button("🤖 Generate AI-Powered Risk Assessment", type="primary", use_container_width=True):
-                with st.spinner("🔍 Analyzing your organization data and generating risk assessment..."):
-                    # Import the AI risk assessment module
-                    import sys
-                    sys.path.append('/mnt/user-data/outputs')
-                    from ai_risk_assessment import generate_ai_risk_assessment
-                    
-                    # Get organization profile
-                    org_profile = {
-                        'org_name': st.session_state.cost_data.get('org_name', 'Organization'),
-                        'industry': st.session_state.cost_data.get('industry', 'Other'),
-                        'org_size': st.session_state.get('org_size', '100-500'),
-                        'maturity': st.session_state.get('maturity', 'Pilot'),
-                        'use_case': st.session_state.cost_data.get('use_case', 'Other')
-                    }
-                    
-                    # Generate AI risk assessment
-                    ai_risks = generate_ai_risk_assessment(st.session_state.cost_data, org_profile)
-                    st.session_state.ai_risks = ai_risks
-                    st.success("✅ AI risk assessment generated successfully!")
+        # col1, col2 = st.columns(2)
         
-        with col2:
-            assessment_mode = st.radio(
-                "Assessment Mode:",
-                ["🤖 View AI Assessment", "📝 Manual Assessment"],
-                horizontal=True,
-                label_visibility="collapsed"
-            )
+        # with col1:
+        #     if st.button("🤖 Generate AI-Powered Risk Assessment", type="primary", use_container_width=True):
+        #         with st.spinner("🔍 Analyzing your organization data and generating risk assessment..."):
+        #             # Import the AI risk assessment module
+        #             import sys
+        #             sys.path.append('/mnt/user-data/outputs')
+        #             from ai_risk_assessment import generate_ai_risk_assessment
+        #             
+        #             # Get organization profile
+        #             org_profile = {
+        #                 'org_name': st.session_state.cost_data.get('org_name', 'Organization'),
+        #                 'industry': st.session_state.cost_data.get('industry', 'Other'),
+        #                 'org_size': st.session_state.get('org_size', '100-500'),
+        #                 'maturity': st.session_state.get('maturity', 'Pilot'),
+        #                 'use_case': st.session_state.cost_data.get('use_case', 'Other')
+        #             }
+        #             
+        #             # Generate AI risk assessment
+        #             ai_risks = generate_ai_risk_assessment(st.session_state.cost_data, org_profile)
+        #             st.session_state.ai_risks = ai_risks
+        #             st.success("✅ AI risk assessment generated successfully!")
+        
+        # with col2:
+        #     assessment_mode = st.radio(
+        #         "Assessment Mode:",
+        #         ["🤖 View AI Assessment", "📝 Manual Assessment"],
+        #         horizontal=True,
+        #         label_visibility="collapsed"
+        #     )
+        
+        # Set to manual assessment mode by default
+        assessment_mode = "📝 Manual Assessment"
         
         st.markdown("---")
         
@@ -1412,7 +1447,15 @@ with tab5:
         st.info("**Right-size Infrastructure:** Potential savings of $36K/year")
 
 # Tab 6: Comparison Mode
+# Tab 6: AI Model Selector (NEW)
 with tab6:
+    import sys
+    sys.path.append('/mnt/user-data/outputs')
+    from ai_model_selector import render_model_comparison_tool
+    render_model_comparison_tool()
+
+# Tab 7: Comparison Mode (formerly tab6)
+with tab7:
     st.header("🔄 Scenario Comparison")
     st.info("💡 Compare multiple scenarios side-by-side.")
     
@@ -1430,8 +1473,8 @@ with tab6:
     })
     st.dataframe(sample_df)
 
-# Tab 7: Summary Report
-with tab7:
+# Tab 8: Summary Report (formerly tab7)
+with tab8:
     st.header("📋 Executive Summary Report")
     
     if 'cost_data' not in st.session_state:
