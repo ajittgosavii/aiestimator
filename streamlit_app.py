@@ -10,50 +10,169 @@ st.set_page_config(
     page_title="Gen AI ROI & TCO Calculator",
     page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Custom CSS for professional appearance
 st.markdown("""
     <style>
+    /* Main container styling */
     .main {
-        padding: 0rem 1rem;
+        padding: 1rem 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
     }
+    
+    /* Header styling */
+    .main-header {
+        text-align: center;
+        padding: 2rem 0;
+        background: linear-gradient(135deg, #1f77b4 0%, #2c5aa0 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    /* Navigation styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 60px;
+        padding: 0 24px;
+        background-color: white;
+        border-radius: 8px;
+        font-weight: 500;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background-color: #e3f2fd;
+        border-color: #1f77b4;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #1f77b4 !important;
+        color: white !important;
+        border-color: #1f77b4 !important;
+    }
+    
+    /* Metric styling */
     .stMetric {
-        background-color: #f0f2f6;
-        padding: 15px;
-        border-radius: 5px;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
         border-left: 5px solid #1f77b4;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    
+    /* Info boxes */
     .warning-box {
         background-color: #fff3cd;
         border-left: 5px solid #ffc107;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
+    
     .success-box {
         background-color: #d4edda;
         border-left: 5px solid #28a745;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
+    
     .info-box {
         background-color: #d1ecf1;
         border-left: 5px solid #17a2b8;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
+    
+    /* Section headers */
     h1 {
         color: #1f77b4;
-        padding-bottom: 10px;
+        padding-bottom: 15px;
         border-bottom: 3px solid #1f77b4;
+        margin-bottom: 20px;
     }
+    
     h2 {
         color: #2c5aa0;
         margin-top: 30px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    h3 {
+        color: #1f77b4;
+        margin-top: 20px;
+    }
+    
+    /* Cards and containers */
+    .stExpander {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background-color: white;
+    }
+    
+    /* Input fields */
+    .stNumberInput, .stSelectbox, .stTextInput {
+        background-color: white;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background-color: #1f77b4;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 24px;
+        border: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: #1557a0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Download buttons */
+    .stDownloadButton > button {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .stDownloadButton > button:hover {
+        background-color: #218838;
+    }
+    
+    /* Sidebar (minimized) */
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 30px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        margin-top: 50px;
+        color: #666;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -61,36 +180,164 @@ st.markdown("""
 # Initialize session state
 if 'calculation_done' not in st.session_state:
     st.session_state.calculation_done = False
+if 'app_mode' not in st.session_state:
+    st.session_state.app_mode = 'Live'
+if 'demo_loaded' not in st.session_state:
+    st.session_state.demo_loaded = False
 
-# Header
-st.title("🤖 Gen AI ROI & Total Cost of Ownership Calculator")
-st.markdown("### *Enterprise-Grade Analysis for Informed AI Investment Decisions*")
+# Demo data - Realistic Customer Service Chatbot scenario
+DEMO_DATA = {
+    'org_profile': {
+        'org_name': 'TechCorp Solutions',
+        'industry': 'Technology',
+        'org_size': '500-1000',
+        'maturity': 'Pilot',
+        'use_case': 'Customer Service/Chatbots',
+        'expected_users': 200
+    },
+    'ai_costs': {
+        'model_provider': 'Anthropic (Claude)',
+        'avg_tokens_per_request': 2500,
+        'requests_per_day': 5000,
+        'cost_per_million_tokens': 15.0,
+        'growth_rate': 50,
+        'embedding_cost': 800
+    },
+    'infrastructure': {
+        'compute_cost': 3000,
+        'storage_cost': 800,
+        'networking_cost': 400,
+        'security_tools': 1500,
+        'monitoring_tools': 1000,
+        'backup_dr': 500
+    },
+    'development': {
+        'ai_engineers': 2.0,
+        'ai_engineer_cost': 180000,
+        'backend_devs': 2.0,
+        'backend_cost': 150000,
+        'frontend_devs': 1.5,
+        'frontend_cost': 130000,
+        'qa_engineers': 1.0,
+        'qa_cost': 120000,
+        'dev_tools': 60000
+    },
+    'data_management': {
+        'data_engineers': 1.5,
+        'data_engineer_cost': 160000,
+        'data_prep_cost': 75000,
+        'data_quality_tools': 40000,
+        'data_labeling': 50000
+    },
+    'operations': {
+        'ops_engineers': 1.5,
+        'ops_cost': 170000,
+        'support_staff': 2.0,
+        'support_cost': 100000,
+        'incident_mgmt': 40000,
+        'model_retraining': 60000
+    },
+    'organizational': {
+        'training_cost': 80000,
+        'change_mgmt': 100000,
+        'governance_cost': 70000,
+        'legal_cost': 50000
+    },
+    'contingency_pct': 18,
+    'vendor_lock_in': 'Basic (Multi-provider testing)',
+    'roi_benefits': {
+        'time_saved_per_user': 6.0,
+        'hourly_rate': 75,
+        'affected_users': 200,
+        'productivity_pct': 75,
+        'customer_service_reduction': 150000,
+        'process_automation_value': 200000,
+        'error_reduction_value': 75000,
+        'cost_reduction_confidence': 70,
+        'new_revenue': 250000,
+        'customer_retention': 120000,
+        'revenue_confidence': 55,
+        'competitive_advantage': 180000,
+        'innovation_value': 130000,
+        'strategic_confidence': 60
+    }
+}
+
+# Header with professional styling
+st.markdown("""
+    <div class="main-header">
+        <h1 style="color: white; border: none; margin: 0; font-size: 2.5rem;">🤖 Gen AI ROI & TCO Calculator</h1>
+        <p style="color: #e3f2fd; font-size: 1.2rem; margin-top: 10px;">Enterprise-Grade Analysis for Informed AI Investment Decisions</p>
+    </div>
+""", unsafe_allow_html=True)
+
+# Mode Selector
 st.markdown("---")
+col1, col2, col3 = st.columns([1, 2, 1])
 
-# Sidebar for navigation
-with st.sidebar:
-    st.image("https://via.placeholder.com/200x80/1f77b4/ffffff?text=Gen+AI+ROI", use_container_width=True)
-    st.markdown("### Navigation")
-    section = st.radio(
-        "Select Section:",
-        ["📊 Overview", "💰 Cost Analysis", "📈 ROI Calculator", "⚠️ Risk Assessment", "📋 Summary Report"],
-        label_visibility="collapsed"
+with col2:
+    mode = st.segmented_control(
+        "Select Mode",
+        options=["🎓 Demo Mode", "💼 Live Mode"],
+        default="💼 Live Mode" if st.session_state.app_mode == 'Live' else "🎓 Demo Mode",
+        help="Demo Mode: See a complete example with sample data | Live Mode: Enter your own data"
     )
     
-    st.markdown("---")
-    st.markdown("### About")
-    st.info("""
-    This calculator helps you understand:
-    - **Total Cost of Ownership** (3-year projection)
-    - **Hidden & Often-Overlooked Costs**
-    - **ROI with Risk Adjustments**
-    - **Break-even Analysis**
-    - **Comparative Scenarios**
-    """)
+    # Update session state based on selection
+    if mode == "🎓 Demo Mode" and st.session_state.app_mode != 'Demo':
+        st.session_state.app_mode = 'Demo'
+        st.session_state.demo_loaded = False
+        st.rerun()
+    elif mode == "💼 Live Mode" and st.session_state.app_mode != 'Live':
+        st.session_state.app_mode = 'Live'
+        st.rerun()
 
-# Overview Section
-if section == "📊 Overview":
+# Mode explanation
+if st.session_state.app_mode == 'Demo':
+    st.markdown("""
+    <div class="info-box">
+    <strong>🎓 Demo Mode Active</strong><br>
+    Explore a complete example with realistic data for a Customer Service Chatbot implementation.
+    All fields are pre-populated. Navigate through tabs to see the full analysis.
+    Switch to <strong>Live Mode</strong> when ready to input your own data.
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <div class="info-box">
+    <strong>💼 Live Mode Active</strong><br>
+    Enter your organization's data to calculate TCO and ROI. Need help? Switch to <strong>Demo Mode</strong> to see an example first.
+    </div>
+    """, unsafe_allow_html=True)
+
+# Create centered tabs for navigation
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📊 Overview", 
+    "💰 Cost Analysis", 
+    "📈 ROI Calculator", 
+    "⚠️ Risk Assessment", 
+    "📋 Summary Report"
+])
+
+# Tab 1: Overview Section
+with tab1:
     st.header("Understanding the True Cost of Gen AI Implementation")
+    
+    st.markdown("""
+    <div class="info-box">
+    <h3>📍 How to Use This Calculator</h3>
+    <p>Navigate through the tabs above in order:</p>
+    <ol>
+        <li><strong>Overview</strong> - Understand what costs to consider (you are here)</li>
+        <li><strong>Cost Analysis</strong> - Input your organization's cost data</li>
+        <li><strong>ROI Calculator</strong> - Estimate benefits and calculate returns</li>
+        <li><strong>Risk Assessment</strong> - Identify and quantify risks</li>
+        <li><strong>Summary Report</strong> - Review findings and export results</li>
+    </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
     
     col1, col2 = st.columns(2)
     
@@ -149,14 +396,21 @@ if section == "📊 Overview":
                 for item in items:
                     st.markdown(f"• {item}")
 
-# Cost Analysis Section
-elif section == "💰 Cost Analysis":
+
+# Tab 2: Cost Analysis Section
+with tab2:
     st.header("Detailed Cost Analysis")
+    
+    # Load demo data if in demo mode and not yet loaded
+    if st.session_state.app_mode == 'Demo' and not st.session_state.demo_loaded:
+        st.info("📊 Loading demo data... This represents a typical mid-size Customer Service Chatbot implementation.")
+        st.session_state.demo_loaded = True
     
     st.markdown("""
     <div class="info-box">
     <strong>Instructions:</strong> Fill in all relevant fields. Use conservative estimates where uncertain. 
     All costs should be in USD and on an annual basis unless specified otherwise.
+    """ + (" <br><strong>🎓 Demo Mode:</strong> All fields are pre-filled with realistic example data." if st.session_state.app_mode == 'Demo' else "") + """
     </div>
     """, unsafe_allow_html=True)
     
@@ -164,19 +418,44 @@ elif section == "💰 Cost Analysis":
     st.subheader("🏢 Organization Profile")
     col1, col2, col3 = st.columns(3)
     
+    # Helper function to get demo value
+    def get_demo_value(section, key, default):
+        if st.session_state.app_mode == 'Demo':
+            return DEMO_DATA.get(section, {}).get(key, default)
+        return default
+    
     with col1:
-        org_name = st.text_input("Organization Name", placeholder="Your Company Inc.")
-        industry = st.selectbox("Industry", ["Financial Services", "Healthcare", "Technology", "Manufacturing", "Retail", "Government", "Other"])
+        org_name = st.text_input("Organization Name", 
+            value=get_demo_value('org_profile', 'org_name', ''),
+            placeholder="Your Company Inc.")
+        industry = st.selectbox("Industry", 
+            ["Financial Services", "Healthcare", "Technology", "Manufacturing", "Retail", "Government", "Other"],
+            index=["Financial Services", "Healthcare", "Technology", "Manufacturing", "Retail", "Government", "Other"].index(
+                get_demo_value('org_profile', 'industry', 'Technology')))
     
     with col2:
-        org_size = st.selectbox("Organization Size", ["<100", "100-500", "500-1000", "1000-5000", "5000+"])
-        maturity = st.selectbox("AI Maturity Level", ["Exploring", "Pilot", "Scaling", "Mature"])
+        org_size = st.selectbox("Organization Size", 
+            ["<100", "100-500", "500-1000", "1000-5000", "5000+"],
+            index=["<100", "100-500", "500-1000", "1000-5000", "5000+"].index(
+                get_demo_value('org_profile', 'org_size', '500-1000')))
+        st.session_state.org_size = org_size  # Store for AI risk assessment
+        
+        maturity = st.selectbox("AI Maturity Level", 
+            ["Exploring", "Pilot", "Scaling", "Mature"],
+            index=["Exploring", "Pilot", "Scaling", "Mature"].index(
+                get_demo_value('org_profile', 'maturity', 'Pilot')))
+        st.session_state.maturity = maturity  # Store for AI risk assessment
     
     with col3:
         use_case = st.selectbox("Primary Use Case", 
             ["Customer Service/Chatbots", "Content Generation", "Code Assistance", "Data Analysis", 
-             "Document Processing", "Knowledge Management", "Multiple Use Cases"])
-        expected_users = st.number_input("Expected Active Users", min_value=1, value=100)
+             "Document Processing", "Knowledge Management", "Multiple Use Cases"],
+            index=["Customer Service/Chatbots", "Content Generation", "Code Assistance", "Data Analysis", 
+             "Document Processing", "Knowledge Management", "Multiple Use Cases"].index(
+                get_demo_value('org_profile', 'use_case', 'Customer Service/Chatbots')))
+        expected_users = st.number_input("Expected Active Users", 
+            min_value=1, 
+            value=int(get_demo_value('org_profile', 'expected_users', 100)))
     
     st.markdown("---")
     
@@ -187,25 +466,36 @@ elif section == "💰 Cost Analysis":
     
     with col1:
         model_provider = st.selectbox("Primary Model Provider", 
-            ["OpenAI (GPT-4, GPT-3.5)", "Anthropic (Claude)", "AWS Bedrock", "Azure OpenAI", "Google Vertex AI", "Multiple Providers"])
+            ["OpenAI (GPT-4, GPT-3.5)", "Anthropic (Claude)", "AWS Bedrock", "Azure OpenAI", "Google Vertex AI", "Multiple Providers"],
+            index=["OpenAI (GPT-4, GPT-3.5)", "Anthropic (Claude)", "AWS Bedrock", "Azure OpenAI", "Google Vertex AI", "Multiple Providers"].index(
+                get_demo_value('ai_costs', 'model_provider', 'Anthropic (Claude)')))
         
         avg_tokens_per_request = st.number_input("Avg Tokens per Request (Input + Output)", 
-            min_value=100, value=2000, help="Typical range: 500-5000 tokens")
+            min_value=100, 
+            value=int(get_demo_value('ai_costs', 'avg_tokens_per_request', 2000)), 
+            help="Typical range: 500-5000 tokens")
         
         requests_per_day = st.number_input("Estimated Requests per Day", 
-            min_value=1, value=1000, help="Total across all users")
+            min_value=1, 
+            value=int(get_demo_value('ai_costs', 'requests_per_day', 1000)), 
+            help="Total across all users")
     
     with col2:
         cost_per_million_tokens = st.number_input("Cost per Million Tokens (USD)", 
-            min_value=0.0, value=15.0, step=0.5, 
+            min_value=0.0, 
+            value=float(get_demo_value('ai_costs', 'cost_per_million_tokens', 15.0)), 
+            step=0.5, 
             help="GPT-4: ~$30, GPT-3.5: ~$2, Claude Sonnet: ~$15")
         
         growth_rate = st.slider("Expected Annual Usage Growth (%)", 
-            min_value=0, max_value=200, value=50, 
+            min_value=0, max_value=200, 
+            value=int(get_demo_value('ai_costs', 'growth_rate', 50)), 
             help="How fast will usage grow?")
         
         embedding_cost = st.number_input("Monthly Embedding/Vector DB Cost (USD)", 
-            min_value=0, value=500, help="Pinecone, Weaviate, etc.")
+            min_value=0, 
+            value=int(get_demo_value('ai_costs', 'embedding_cost', 500)), 
+            help="Pinecone, Weaviate, etc.")
     
     # Calculate direct costs
     annual_requests = requests_per_day * 365
@@ -413,14 +703,15 @@ elif section == "💰 Cost Analysis":
         'use_case': use_case
     }
     
-    st.success("✅ Cost analysis completed! Navigate to ROI Calculator to continue.")
+    st.success("✅ Cost analysis completed! Switch to the ROI Calculator tab to continue.")
 
-# ROI Calculator Section
-elif section == "📈 ROI Calculator":
+
+# Tab 3: ROI Calculator Section
+with tab3:
     st.header("Return on Investment Analysis")
     
     if 'cost_data' not in st.session_state:
-        st.warning("⚠️ Please complete the Cost Analysis section first.")
+        st.warning("⚠️ Please complete the Cost Analysis tab first.")
     else:
         st.markdown("""
         <div class="info-box">
@@ -669,21 +960,184 @@ elif section == "📈 ROI Calculator":
                           f"<strong>{risk}</strong>: {severity}</div>", unsafe_allow_html=True)
         
         st.session_state.calculation_done = True
-        st.success("✅ ROI analysis completed! Navigate to Risk Assessment or Summary Report.")
+        st.success("✅ ROI analysis completed! Check out the Risk Assessment or Summary Report tabs.")
 
-# Risk Assessment Section
-elif section == "⚠️ Risk Assessment":
+
+# Tab 4: Risk Assessment Section
+with tab4:
     st.header("Comprehensive Risk Assessment")
     
     st.markdown("""
     <div class="info-box">
-    Identify and quantify risks that could impact your Gen AI investment. 
-    This assessment helps in risk mitigation planning and contingency budgeting.
+    Choose your preferred method:<br>
+    <strong>🤖 AI-Powered Assessment:</strong> Automatically analyze risks based on your inputs (recommended)<br>
+    <strong>📝 Manual Assessment:</strong> Rate each risk yourself for granular control
     </div>
     """, unsafe_allow_html=True)
     
-    # Risk Categories
-    risk_categories = {
+    # Check if cost data is available
+    if 'cost_data' not in st.session_state:
+        st.warning("⚠️ Please complete the Cost Analysis tab first to enable risk assessment.")
+    else:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🤖 Generate AI-Powered Risk Assessment", type="primary", use_container_width=True):
+                with st.spinner("🔍 Analyzing your organization data and generating risk assessment..."):
+                    # Import the AI risk assessment module
+                    import sys
+                    sys.path.append('/mnt/user-data/outputs')
+                    from ai_risk_assessment import generate_ai_risk_assessment
+                    
+                    # Get organization profile
+                    org_profile = {
+                        'org_name': st.session_state.cost_data.get('org_name', 'Organization'),
+                        'industry': st.session_state.cost_data.get('industry', 'Other'),
+                        'org_size': st.session_state.get('org_size', '100-500'),
+                        'maturity': st.session_state.get('maturity', 'Pilot'),
+                        'use_case': st.session_state.cost_data.get('use_case', 'Other')
+                    }
+                    
+                    # Generate AI risk assessment
+                    ai_risks = generate_ai_risk_assessment(st.session_state.cost_data, org_profile)
+                    st.session_state.ai_risks = ai_risks
+                    st.success("✅ AI risk assessment generated successfully!")
+        
+        with col2:
+            assessment_mode = st.radio(
+                "Assessment Mode:",
+                ["🤖 View AI Assessment", "📝 Manual Assessment"],
+                horizontal=True,
+                label_visibility="collapsed"
+            )
+        
+        st.markdown("---")
+        
+        # Display AI-powered assessment if available
+        if assessment_mode == "🤖 View AI Assessment" and 'ai_risks' in st.session_state:
+            ai_risks = st.session_state.ai_risks
+            
+            st.subheader("🤖 AI-Generated Risk Assessment")
+            
+            # Summary metrics
+            summary = ai_risks.get('analysis_summary', {})
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Total Risks Assessed", summary.get('total_risks_assessed', 0))
+            with col2:
+                st.metric("High Priority Risks", 
+                         summary.get('high_priority_count', 0),
+                         delta="Critical" if summary.get('high_priority_count', 0) >= 8 else "Monitor")
+            with col3:
+                risk_level = summary.get('overall_risk_level', 'Medium')
+                color = "🔴" if risk_level == "High" else "🟡" if risk_level == "Medium" else "🟢"
+                st.metric("Overall Risk Level", f"{color} {risk_level}")
+            
+            st.markdown("---")
+            
+            # Top Priority Risks
+            st.subheader("🎯 Top Priority Risks")
+            top_risks = summary.get('top_5_risks', [])
+            
+            for i, risk in enumerate(top_risks, 1):
+                severity = "🔴 Critical" if risk['score'] >= 20 else "🟠 High" if risk['score'] >= 16 else "🟡 Elevated"
+                st.markdown(f"""
+                <div class="warning-box">
+                <strong>{i}. {severity}: {risk['name']}</strong><br>
+                Risk Score: {risk['score']} (Likelihood: {risk['likelihood']}, Impact: {risk['impact']})
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Detailed Risk Analysis by Category
+            st.subheader("📊 Detailed Risk Analysis")
+            
+            risk_categories = {
+                "Technical Risks": ai_risks.get('Technical Risks', {}),
+                "Operational Risks": ai_risks.get('Operational Risks', {}),
+                "Business Risks": ai_risks.get('Business Risks', {}),
+                "Compliance & Legal Risks": ai_risks.get('Compliance & Legal Risks', {}),
+                "Security Risks": ai_risks.get('Security Risks', {})
+            }
+            
+            for category, risks in risk_categories.items():
+                with st.expander(f"**{category}** ({len(risks)} risks assessed)", expanded=False):
+                    for risk_name, risk_data in risks.items():
+                        score = risk_data['likelihood'] * risk_data['impact']
+                        severity_color = "#dc3545" if score >= 16 else "#ffc107" if score >= 9 else "#28a745"
+                        
+                        st.markdown(f"""
+                        <div style='background-color:{severity_color}20; padding:15px; border-radius:8px; margin:10px 0; border-left: 5px solid {severity_color};'>
+                        <strong>{risk_name}</strong><br>
+                        <small>Likelihood: {risk_data['likelihood']}/5 | Impact: {risk_data['impact']}/5 | Risk Score: {score}/25</small><br>
+                        <em>{risk_data['reasoning']}</em>
+                        </div>
+                        """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Key Recommendations
+            st.subheader("💡 AI-Generated Recommendations")
+            recommendations = summary.get('key_recommendations', [])
+            
+            for i, rec in enumerate(recommendations, 1):
+                st.markdown(f"{i}. {rec}")
+            
+            # Risk Heat Map
+            st.subheader("🔥 Risk Heat Map")
+            
+            # Prepare data for visualization
+            import pandas as pd
+            import plotly.express as px
+            
+            risk_matrix = []
+            for category, risks in risk_categories.items():
+                for risk_name, risk_data in risks.items():
+                    risk_matrix.append({
+                        'Risk': risk_name[:40] + '...' if len(risk_name) > 40 else risk_name,
+                        'Category': category,
+                        'Likelihood': risk_data['likelihood'],
+                        'Impact': risk_data['impact'],
+                        'Score': risk_data['likelihood'] * risk_data['impact']
+                    })
+            
+            risk_df = pd.DataFrame(risk_matrix)
+            
+            fig = px.scatter(risk_df, x='Likelihood', y='Impact', size='Score', 
+                           color='Category', hover_data=['Risk'],
+                           title="Risk Heat Map (AI-Generated)",
+                           labels={'Likelihood': 'Likelihood →', 'Impact': 'Impact →'},
+                           size_max=30)
+            
+            fig.update_layout(height=500)
+            fig.update_xaxis(range=[0.5, 5.5], dtick=1)
+            fig.update_yaxis(range=[0.5, 5.5], dtick=1)
+            
+            # Add quadrant lines
+            fig.add_hline(y=3, line_dash="dash", line_color="gray", opacity=0.5)
+            fig.add_vline(x=3, line_dash="dash", line_color="gray", opacity=0.5)
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.session_state.risk_assessment_done = True
+            
+        elif assessment_mode == "📝 Manual Assessment" or 'ai_risks' not in st.session_state:
+            st.subheader("📝 Manual Risk Assessment")
+            
+            if 'ai_risks' not in st.session_state:
+                st.info("💡 **Tip:** Click 'Generate AI-Powered Risk Assessment' above for automated analysis, or proceed with manual assessment below.")
+            
+            st.markdown("""
+            <div class="info-box">
+            Rate each risk on two dimensions:<br>
+            <strong>Likelihood:</strong> How likely is this risk to occur? (1=Very Low, 5=Very High)<br>
+            <strong>Impact:</strong> If it occurs, what would be the impact? (1=Very Low, 5=Very High)
+            </div>
+            """, unsafe_allow_html=True)
+            
+            risk_categories = {
         "Technical Risks": [
             ("Model performance degradation over time", "How will you monitor and address model drift?"),
             ("Integration complexity with existing systems", "Assessment of technical debt and compatibility"),
@@ -721,159 +1175,24 @@ elif section == "⚠️ Risk Assessment":
         ]
     }
     
-    # Risk assessment
-    risk_scores = {}
+            # Manual risk assessment
+            st.info("📝 **Manual Assessment:** For detailed manual risk assessment, use the AI assessment as a starting point and export the results. You can then review and adjust scores offline.")
+            
+            st.markdown("**Quick Manual Override:**")
+            st.text_area("Add your own risk notes here:", height=200, placeholder="Enter any specific risks or concerns unique to your organization...")
+            
+            st.session_state.risk_assessment_done = True
+            # Tab 5: Summary Report Section
+            with tab5:
+                st.header("Executive Summary Report")
     
-    for category, risks in risk_categories.items():
-        st.subheader(f"📋 {category}")
+                if 'cost_data' not in st.session_state:
+                    st.warning("⚠️ Please complete the Cost Analysis tab first.")
+                else:
+                    cost_data = st.session_state.cost_data
         
-        for risk, question in risks:
-            col1, col2, col3 = st.columns([3, 1, 1])
-            
-            with col1:
-                st.markdown(f"**{risk}**")
-                st.caption(question)
-            
-            with col2:
-                likelihood = st.select_slider(
-                    f"Likelihood###{risk}",
-                    options=["Very Low", "Low", "Medium", "High", "Very High"],
-                    value="Medium",
-                    key=f"likelihood_{risk}",
-                    label_visibility="collapsed"
-                )
-            
-            with col3:
-                impact = st.select_slider(
-                    f"Impact###{risk}",
-                    options=["Very Low", "Low", "Medium", "High", "Very High"],
-                    value="Medium",
-                    key=f"impact_{risk}",
-                    label_visibility="collapsed"
-                )
-            
-            # Calculate risk score
-            likelihood_score = {"Very Low": 1, "Low": 2, "Medium": 3, "High": 4, "Very High": 5}[likelihood]
-            impact_score = {"Very Low": 1, "Low": 2, "Medium": 3, "High": 4, "Very High": 5}[impact]
-            risk_score = likelihood_score * impact_score
-            
-            risk_scores[risk] = {
-                'category': category,
-                'likelihood': likelihood_score,
-                'impact': impact_score,
-                'score': risk_score
-            }
-        
-        st.markdown("---")
-    
-    # Risk Heat Map
-    st.subheader("🔥 Risk Heat Map")
-    
-    # Prepare data for heat map
-    risk_matrix = []
-    for risk, data in risk_scores.items():
-        risk_matrix.append({
-            'Risk': risk[:40] + '...' if len(risk) > 40 else risk,
-            'Category': data['category'],
-            'Likelihood': data['likelihood'],
-            'Impact': data['impact'],
-            'Score': data['score']
-        })
-    
-    risk_df = pd.DataFrame(risk_matrix)
-    
-    # Create scatter plot for risk visualization
-    fig = px.scatter(risk_df, x='Likelihood', y='Impact', size='Score', 
-                     color='Category', hover_data=['Risk'],
-                     title="Risk Heat Map (Likelihood vs Impact)",
-                     labels={'Likelihood': 'Likelihood →', 'Impact': 'Impact →'},
-                     size_max=30)
-    
-    fig.update_layout(height=500)
-    fig.update_xaxis(range=[0.5, 5.5], dtick=1)
-    fig.update_yaxis(range=[0.5, 5.5], dtick=1)
-    
-    # Add quadrant lines
-    fig.add_hline(y=3, line_dash="dash", line_color="gray", opacity=0.5)
-    fig.add_vline(x=3, line_dash="dash", line_color="gray", opacity=0.5)
-    
-    # Add quadrant labels
-    fig.add_annotation(x=1.5, y=4.5, text="High Impact<br>Low Likelihood", 
-                      showarrow=False, opacity=0.5)
-    fig.add_annotation(x=4.5, y=4.5, text="High Impact<br>High Likelihood<br>(CRITICAL)", 
-                      showarrow=False, opacity=0.5, font=dict(color="red"))
-    fig.add_annotation(x=1.5, y=1.5, text="Low Impact<br>Low Likelihood", 
-                      showarrow=False, opacity=0.5)
-    fig.add_annotation(x=4.5, y=1.5, text="Low Impact<br>High Likelihood", 
-                      showarrow=False, opacity=0.5)
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Top Risks
-    st.subheader("🎯 Top Risks Requiring Immediate Attention")
-    
-    top_risks = risk_df.nlargest(5, 'Score')[['Risk', 'Category', 'Score', 'Likelihood', 'Impact']]
-    
-    for idx, row in top_risks.iterrows():
-        severity = "🔴 Critical" if row['Score'] >= 16 else "🟡 High" if row['Score'] >= 9 else "🟢 Medium"
-        st.markdown(f"""
-        <div class="warning-box">
-        <strong>{severity}: {row['Risk']}</strong><br>
-        Category: {row['Category']}<br>
-        Risk Score: {row['Score']} (Likelihood: {row['Likelihood']}, Impact: {row['Impact']})
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Mitigation Recommendations
-    st.subheader("🛡️ Risk Mitigation Recommendations")
-    
-    st.markdown("""
-    **For High-Priority Risks, Consider:**
-    
-    1. **Technical Risks:**
-       - Implement continuous model monitoring and automated retraining pipelines
-       - Establish comprehensive testing frameworks including adversarial testing
-       - Design with provider abstraction to avoid vendor lock-in
-       - Invest in data quality frameworks from day one
-    
-    2. **Operational Risks:**
-       - Create a formal AI Center of Excellence with clear governance
-       - Implement comprehensive training and change management programs
-       - Establish usage policies and monitoring to prevent shadow IT
-       - Hire or train specialized AI/ML talent
-    
-    3. **Business Risks:**
-       - Set realistic, phased rollout plans with measurable milestones
-       - Establish executive sponsorship and regular stakeholder communication
-       - Create contingency plans for budget constraints
-       - Conduct regular business value assessments
-    
-    4. **Compliance & Legal:**
-       - Engage legal counsel early for AI-specific contract reviews
-       - Implement privacy by design and conduct regular audits
-       - Establish AI ethics guidelines and review boards
-       - Stay updated on emerging AI regulations (EU AI Act, etc.)
-    
-    5. **Security Risks:**
-       - Implement zero-trust architecture for AI systems
-       - Conduct regular security assessments and penetration testing
-       - Establish data classification and access controls
-       - Create incident response plans specific to AI systems
-    """)
-    
-    st.session_state.risk_assessment_done = True
-
-# Summary Report Section
-elif section == "📋 Summary Report":
-    st.header("Executive Summary Report")
-    
-    if 'cost_data' not in st.session_state:
-        st.warning("⚠️ Please complete the Cost Analysis section first.")
-    else:
-        cost_data = st.session_state.cost_data
-        
-        # Header
-        st.markdown(f"""
+                    # Header
+                    st.markdown(f"""
         # Gen AI Investment Analysis
         ## {cost_data.get('org_name', 'Your Organization')}
         **Industry:** {cost_data.get('industry', 'N/A')} | **Use Case:** {cost_data.get('use_case', 'N/A')}  
@@ -1174,13 +1493,17 @@ elif section == "📋 Summary Report":
         with col3:
             st.markdown("**Share this analysis** with stakeholders to facilitate informed decision-making.")
 
-# Footer
+# Professional Footer
 st.markdown("---")
 st.markdown("""
-<div style='text-align: center; color: #666; padding: 20px;'>
-<p><strong>Gen AI ROI & TCO Calculator</strong> | Enterprise Decision Support Tool</p>
-<p>Built with Streamlit | For enterprise AI investment analysis</p>
-<p style='font-size: 0.8em;'>⚠️ This calculator provides estimates based on inputs. Actual costs and benefits may vary. 
-Consult with financial and technical experts for major investment decisions.</p>
+<div class="footer">
+<h3 style='color: #1f77b4; margin-bottom: 15px;'>Gen AI ROI & TCO Calculator</h3>
+<p style='margin: 10px 0;'><strong>Enterprise Decision Support Tool</strong></p>
+<p style='margin: 10px 0;'>Built with Streamlit | Comprehensive AI Investment Analysis</p>
+<p style='font-size: 0.9em; margin-top: 20px; color: #888;'>
+⚠️ <em>This calculator provides estimates based on inputs. Actual costs and benefits may vary.<br>
+Consult with financial and technical experts for major investment decisions.</em>
+</p>
+<p style='font-size: 0.85em; margin-top: 15px; color: #aaa;'>Version 1.0 | © 2024</p>
 </div>
 """, unsafe_allow_html=True)
