@@ -707,10 +707,6 @@ with tab2:
     
     three_year_tco = year1_total + year2_total + year3_total
     
-    # Wrap in try-catch for safety
-    try:
-    
-
     # Validate inputs before storing
     try:
         cost_inputs = {
@@ -753,10 +749,6 @@ with tab2:
         'industry': industry,
         'use_case': use_case
     }
-    
-    except Exception as e:
-        st.error(f"❌ Error in cost calculation: {str(e)}")
-        st.info("💡 Please check your inputs and try again.")
     
     st.success("✅ Cost analysis completed! Switch to the ROI Calculator tab to continue.")
 
@@ -1303,17 +1295,15 @@ with tab6:
 
 # Tab 7: Summary Report (moved from tab5)
 with tab7:
-        # Tab 5: Summary Report Section
-        with tab5:
-            st.header("Executive Summary Report")
+    st.header("Executive Summary Report")
     
-            if 'cost_data' not in st.session_state:
-                st.warning("⚠️ Please complete the Cost Analysis tab first.")
-            else:
-                cost_data = st.session_state.cost_data
+    if 'cost_data' not in st.session_state:
+        st.warning("⚠️ Please complete the Cost Analysis tab first.")
+    else:
+        cost_data = st.session_state.cost_data
     
-                # Header
-                st.markdown(f"""
+        # Header
+        st.markdown(f"""
     # Gen AI Investment Analysis
     ## {cost_data.get('org_name', 'Your Organization')}
     **Industry:** {cost_data.get('industry', 'N/A')} | **Use Case:** {cost_data.get('use_case', 'N/A')}  
@@ -1322,26 +1312,26 @@ with tab7:
     ---
     """)
     
-    # Executive Summary
-    st.subheader("📊 Executive Summary")
+        # Executive Summary
+        st.subheader("📊 Executive Summary")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.metric("3-Year Total Cost of Ownership", 
-                 f"${cost_data['three_year_tco']:,.0f}",
-                 help="Comprehensive cost including all direct, indirect, and hidden costs")
+             f"${cost_data['three_year_tco']:,.0f}",
+             help="Comprehensive cost including all direct, indirect, and hidden costs")
     
     with col2:
         if 'roi_data' in st.session_state:
-            roi_data = st.session_state.roi_data
-            st.metric("3-Year ROI", f"{roi_data['roi_percentage']:.1f}%",
-                     delta="Positive" if roi_data['roi_percentage'] > 0 else "Negative")
+        roi_data = st.session_state.roi_data
+        st.metric("3-Year ROI", f"{roi_data['roi_percentage']:.1f}%",
+                 delta="Positive" if roi_data['roi_percentage'] > 0 else "Negative")
     
     with col3:
         if 'roi_data' in st.session_state:
-            payback = roi_data['payback_months']
-            st.metric("Payback Period", f"{payback} months" if isinstance(payback, int) else payback)
+        payback = roi_data['payback_months']
+        st.metric("Payback Period", f"{payback} months" if isinstance(payback, int) else payback)
     
     st.markdown("---")
     
@@ -1353,14 +1343,14 @@ with tab7:
     with col1:
         # Year-over-year costs
         year_data = pd.DataFrame({
-            'Year': ['Year 1', 'Year 2', 'Year 3'],
-            'Cost': [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']]
+        'Year': ['Year 1', 'Year 2', 'Year 3'],
+        'Cost': [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']]
         })
         
         fig = px.bar(year_data, x='Year', y='Cost', 
-                    title="Annual Costs",
-                    labels={'Cost': 'Cost (USD)'},
-                    color_discrete_sequence=['#1f77b4'])
+                title="Annual Costs",
+                labels={'Cost': 'Cost (USD)'},
+                color_discrete_sequence=['#1f77b4'])
         fig.update_traces(text=year_data['Cost'].apply(lambda x: f'${x:,.0f}'), textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
     
@@ -1369,9 +1359,9 @@ with tab7:
         breakdown = cost_data['year1_breakdown']
         
         fig = go.Figure(data=[go.Pie(
-            labels=list(breakdown.keys()),
-            values=list(breakdown.values()),
-            hole=.4
+        labels=list(breakdown.keys()),
+        values=list(breakdown.values()),
+        hole=.4
         )])
         fig.update_layout(title="Year 1 Cost Distribution")
         st.plotly_chart(fig, use_container_width=True)
@@ -1383,7 +1373,7 @@ with tab7:
         'Category': list(cost_data['year1_breakdown'].keys()),
         'Year 1': [f"${v:,.0f}" for v in cost_data['year1_breakdown'].values()],
         'Percentage': [f"{(v/cost_data['year1_total']*100):.1f}%" 
-                      for v in cost_data['year1_breakdown'].values()]
+                  for v in cost_data['year1_breakdown'].values()]
     })
     
     st.dataframe(breakdown_df, use_container_width=True, hide_index=True)
@@ -1398,25 +1388,25 @@ with tab7:
         
         # Benefits vs Costs over 3 years
         timeline_data = pd.DataFrame({
-            'Year': ['Year 1', 'Year 2', 'Year 3'],
-            'Costs': [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']],
-            'Benefits': [roi_data['year1_benefits'], roi_data['year2_benefits'], roi_data['year3_benefits']],
-            'Cumulative Net': [
-                roi_data['year1_benefits'] - cost_data['year1_total'],
-                (roi_data['year1_benefits'] + roi_data['year2_benefits']) - 
-                (cost_data['year1_total'] + cost_data['year2_total']),
-                roi_data['net_benefit']
-            ]
+        'Year': ['Year 1', 'Year 2', 'Year 3'],
+        'Costs': [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']],
+        'Benefits': [roi_data['year1_benefits'], roi_data['year2_benefits'], roi_data['year3_benefits']],
+        'Cumulative Net': [
+            roi_data['year1_benefits'] - cost_data['year1_total'],
+            (roi_data['year1_benefits'] + roi_data['year2_benefits']) - 
+            (cost_data['year1_total'] + cost_data['year2_total']),
+            roi_data['net_benefit']
+        ]
         })
         
         fig = go.Figure()
         fig.add_trace(go.Bar(name='Costs', x=timeline_data['Year'], y=timeline_data['Costs'],
-                            marker_color='#ff7f0e'))
+                        marker_color='#ff7f0e'))
         fig.add_trace(go.Bar(name='Benefits', x=timeline_data['Year'], y=timeline_data['Benefits'],
-                            marker_color='#2ca02c'))
+                        marker_color='#2ca02c'))
         fig.add_trace(go.Scatter(name='Cumulative Net', x=timeline_data['Year'], 
-                                y=timeline_data['Cumulative Net'], mode='lines+markers',
-                                line=dict(color='#d62728', width=3), marker=dict(size=10)))
+                            y=timeline_data['Cumulative Net'], mode='lines+markers',
+                            line=dict(color='#d62728', width=3), marker=dict(size=10)))
         
         fig.update_layout(title="3-Year Financial Projection", barmode='group', height=400)
         st.plotly_chart(fig, use_container_width=True)
@@ -1425,19 +1415,19 @@ with tab7:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("Total Benefits", f"${roi_data['three_year_benefits']:,.0f}")
+        st.metric("Total Benefits", f"${roi_data['three_year_benefits']:,.0f}")
         
         with col2:
-            st.metric("Net Benefit", f"${roi_data['net_benefit']:,.0f}",
-                     delta="Positive" if roi_data['net_benefit'] > 0 else "Negative")
+        st.metric("Net Benefit", f"${roi_data['net_benefit']:,.0f}",
+                 delta="Positive" if roi_data['net_benefit'] > 0 else "Negative")
         
         with col3:
-            benefit_cost_ratio = roi_data['three_year_benefits'] / cost_data['three_year_tco']
-            st.metric("Benefit-Cost Ratio", f"{benefit_cost_ratio:.2f}:1")
+        benefit_cost_ratio = roi_data['three_year_benefits'] / cost_data['three_year_tco']
+        st.metric("Benefit-Cost Ratio", f"{benefit_cost_ratio:.2f}:1")
         
         with col4:
-            annual_roi = ((benefit_cost_ratio - 1) / 3) * 100
-            st.metric("Annualized ROI", f"{annual_roi:.1f}%")
+        annual_roi = ((benefit_cost_ratio - 1) / 3) * 100
+        st.metric("Annualized ROI", f"{annual_roi:.1f}%")
     
     st.markdown("---")
     
@@ -1455,39 +1445,39 @@ with tab7:
     # Cost structure findings
     if api_pct < 20:
         findings.append(("⚠️ Low API Cost Ratio", 
-                       f"API costs are only {api_pct:.1f}% of total costs. The majority of costs are in infrastructure, development, and operations. This is typical for enterprise implementations."))
+                   f"API costs are only {api_pct:.1f}% of total costs. The majority of costs are in infrastructure, development, and operations. This is typical for enterprise implementations."))
     
     if dev_pct > 40:
         findings.append(("👥 Development-Heavy Investment", 
-                       f"Development costs represent {dev_pct:.1f}% of total investment. Consider strategies to reduce time-to-value and optimize team size."))
+                   f"Development costs represent {dev_pct:.1f}% of total investment. Consider strategies to reduce time-to-value and optimize team size."))
     
     if 'roi_data' in st.session_state:
         roi_pct = roi_data['roi_percentage']
         
         if roi_pct > 200:
-            findings.append(("✅ Strong ROI Potential", 
-                           f"Projected ROI of {roi_pct:.1f}% is excellent. Focus on execution and risk mitigation to realize these benefits."))
+        findings.append(("✅ Strong ROI Potential", 
+                       f"Projected ROI of {roi_pct:.1f}% is excellent. Focus on execution and risk mitigation to realize these benefits."))
         elif roi_pct > 100:
-            findings.append(("✅ Positive ROI Expected", 
-                           f"Projected ROI of {roi_pct:.1f}% is good. Ensure realistic expectations and phased rollout."))
+        findings.append(("✅ Positive ROI Expected", 
+                       f"Projected ROI of {roi_pct:.1f}% is good. Ensure realistic expectations and phased rollout."))
         elif roi_pct > 0:
-            findings.append(("⚠️ Modest ROI", 
-                           f"Projected ROI of {roi_pct:.1f}% is modest. Consider optimizing costs or increasing benefit capture."))
+        findings.append(("⚠️ Modest ROI", 
+                       f"Projected ROI of {roi_pct:.1f}% is modest. Consider optimizing costs or increasing benefit capture."))
         else:
-            findings.append(("❌ Negative ROI", 
-                           f"Current projections show negative ROI. Significant revisions needed to business case or implementation approach."))
+        findings.append(("❌ Negative ROI", 
+                       f"Current projections show negative ROI. Significant revisions needed to business case or implementation approach."))
         
         payback = roi_data['payback_months']
         if isinstance(payback, int):
-            if payback <= 18:
-                findings.append(("✅ Fast Payback", 
-                               f"Payback period of {payback} months is excellent for enterprise AI investments."))
-            elif payback <= 30:
-                findings.append(("ℹ️ Moderate Payback", 
-                               f"Payback period of {payback} months is acceptable but consider acceleration strategies."))
-            else:
-                findings.append(("⚠️ Long Payback", 
-                               f"Payback beyond {payback} months increases risk. Consider phased approach or benefit optimization."))
+        if payback <= 18:
+            findings.append(("✅ Fast Payback", 
+                           f"Payback period of {payback} months is excellent for enterprise AI investments."))
+        elif payback <= 30:
+            findings.append(("ℹ️ Moderate Payback", 
+                           f"Payback period of {payback} months is acceptable but consider acceleration strategies."))
+        else:
+            findings.append(("⚠️ Long Payback", 
+                           f"Payback beyond {payback} months increases risk. Consider phased approach or benefit optimization."))
     
     # Display findings
     for title, description in findings:
@@ -1557,58 +1547,58 @@ with tab7:
     with col1:
         # Prepare JSON export
         export_data = {
-            'metadata': {
-                'organization': cost_data.get('org_name', 'N/A'),
-                'industry': cost_data.get('industry', 'N/A'),
-                'use_case': cost_data.get('use_case', 'N/A'),
-                'report_date': datetime.now().isoformat()
-            },
-            'costs': {
-                'year1': cost_data['year1_total'],
-                'year2': cost_data['year2_total'],
-                'year3': cost_data['year3_total'],
-                'total_3year': cost_data['three_year_tco'],
-                'breakdown': cost_data['year1_breakdown']
-            },
-            'roi': st.session_state.get('roi_data', {})
+        'metadata': {
+            'organization': cost_data.get('org_name', 'N/A'),
+            'industry': cost_data.get('industry', 'N/A'),
+            'use_case': cost_data.get('use_case', 'N/A'),
+            'report_date': datetime.now().isoformat()
+        },
+        'costs': {
+            'year1': cost_data['year1_total'],
+            'year2': cost_data['year2_total'],
+            'year3': cost_data['year3_total'],
+            'total_3year': cost_data['three_year_tco'],
+            'breakdown': cost_data['year1_breakdown']
+        },
+        'roi': st.session_state.get('roi_data', {})
         }
         
         json_str = json.dumps(export_data, indent=2)
         st.download_button(
-            label="📄 Download JSON",
-            data=json_str,
-            file_name=f"genai_roi_analysis_{datetime.now().strftime('%Y%m%d')}.json",
-            mime="application/json"
+        label="📄 Download JSON",
+        data=json_str,
+        file_name=f"genai_roi_analysis_{datetime.now().strftime('%Y%m%d')}.json",
+        mime="application/json"
         )
     
     with col2:
         # Prepare CSV export
         summary_data = {
-            'Metric': ['Year 1 Cost', 'Year 2 Cost', 'Year 3 Cost', '3-Year TCO'],
-            'Value': [cost_data['year1_total'], cost_data['year2_total'], 
-                     cost_data['year3_total'], cost_data['three_year_tco']]
+        'Metric': ['Year 1 Cost', 'Year 2 Cost', 'Year 3 Cost', '3-Year TCO'],
+        'Value': [cost_data['year1_total'], cost_data['year2_total'], 
+                 cost_data['year3_total'], cost_data['three_year_tco']]
         }
         
         if 'roi_data' in st.session_state:
-            summary_data['Metric'].extend(['Year 1 Benefits', 'Year 2 Benefits', 
-                                          'Year 3 Benefits', '3-Year Benefits', 
-                                          'Net Benefit', 'ROI %', 'Payback Months'])
-            summary_data['Value'].extend([roi_data['year1_benefits'], 
-                                         roi_data['year2_benefits'],
-                                         roi_data['year3_benefits'],
-                                         roi_data['three_year_benefits'],
-                                         roi_data['net_benefit'],
-                                         roi_data['roi_percentage'],
-                                         roi_data['payback_months']])
+        summary_data['Metric'].extend(['Year 1 Benefits', 'Year 2 Benefits', 
+                                      'Year 3 Benefits', '3-Year Benefits', 
+                                      'Net Benefit', 'ROI %', 'Payback Months'])
+        summary_data['Value'].extend([roi_data['year1_benefits'], 
+                                     roi_data['year2_benefits'],
+                                     roi_data['year3_benefits'],
+                                     roi_data['three_year_benefits'],
+                                     roi_data['net_benefit'],
+                                     roi_data['roi_percentage'],
+                                     roi_data['payback_months']])
         
         summary_df = pd.DataFrame(summary_data)
         csv = summary_df.to_csv(index=False)
         
         st.download_button(
-            label="📊 Download CSV",
-            data=csv,
-            file_name=f"genai_roi_summary_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv"
+        label="📊 Download CSV",
+        data=csv,
+        file_name=f"genai_roi_summary_{datetime.now().strftime('%Y%m%d')}.csv",
+        mime="text/csv"
         )
     
     with col3:
