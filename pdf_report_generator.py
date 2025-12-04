@@ -277,47 +277,62 @@ class PDFReportGenerator:
         
         elements.append(Paragraph("3-Year Cost Breakdown", self.styles['SectionHeader']))
         
-        # Year-by-year costs
-        year_data = [
-            ['Category', 'Year 1', 'Year 2', 'Year 3', 'Total'],
-            ['API Costs', 
-             f"${cost_data['year1_breakdown']['API Costs']:,.0f}",
-             f"${cost_data['year2_breakdown']['API Costs']:,.0f}",
-             f"${cost_data['year3_breakdown']['API Costs']:,.0f}",
-             f"${sum([cost_data[f'year{i}_breakdown']['API Costs'] for i in range(1,4)]):,.0f}"],
-            ['Infrastructure',
-             f"${cost_data['year1_breakdown']['Infrastructure']:,.0f}",
-             f"${cost_data['year2_breakdown']['Infrastructure']:,.0f}",
-             f"${cost_data['year3_breakdown']['Infrastructure']:,.0f}",
-             f"${sum([cost_data[f'year{i}_breakdown']['Infrastructure'] for i in range(1,4)]):,.0f}"],
-            ['Development',
-             f"${cost_data['year1_breakdown']['Development']:,.0f}",
-             f"${cost_data['year2_breakdown']['Development']:,.0f}",
-             f"${cost_data['year3_breakdown']['Development']:,.0f}",
-             f"${sum([cost_data[f'year{i}_breakdown']['Development'] for i in range(1,4)]):,.0f}"],
-            ['Data Management',
-             f"${cost_data['year1_breakdown']['Data Management']:,.0f}",
-             f"${cost_data['year2_breakdown']['Data Management']:,.0f}",
-             f"${cost_data['year3_breakdown']['Data Management']:,.0f}",
-             f"${sum([cost_data[f'year{i}_breakdown']['Data Management'] for i in range(1,4)]):,.0f}"],
-            ['Operations',
-             f"${cost_data['year1_breakdown']['Operations']:,.0f}",
-             f"${cost_data['year2_breakdown']['Operations']:,.0f}",
-             f"${cost_data['year3_breakdown']['Operations']:,.0f}",
-             f"${sum([cost_data[f'year{i}_breakdown']['Operations'] for i in range(1,4)]):,.0f}"],
-            ['Organizational',
-             f"${cost_data['year1_breakdown']['Organizational']:,.0f}",
-             f"${cost_data['year2_breakdown']['Organizational']:,.0f}",
-             f"${cost_data['year3_breakdown']['Organizational']:,.0f}",
-             f"${sum([cost_data[f'year{i}_breakdown']['Organizational'] for i in range(1,4)]):,.0f}"],
-            ['Total',
-             f"${cost_data['year1_total']:,.0f}",
-             f"${cost_data['year2_total']:,.0f}",
-             f"${cost_data['year3_total']:,.0f}",
-             f"${cost_data['three_year_tco']:,.0f}"]
-        ]
+        # Check if we have detailed breakdown data
+        has_year_breakdowns = all(
+            key in cost_data for key in ['year1_breakdown', 'year2_breakdown', 'year3_breakdown']
+        )
         
-        cost_table = Table(year_data, colWidths=[1.5*inch, 1.2*inch, 1.2*inch, 1.2*inch, 1.2*inch])
+        if has_year_breakdowns:
+            # Year-by-year costs with full breakdown
+            year_data = [
+                ['Category', 'Year 1', 'Year 2', 'Year 3', 'Total'],
+                ['API Costs', 
+                 f"${cost_data.get('year1_breakdown', {}).get('API Costs', 0):,.0f}",
+                 f"${cost_data.get('year2_breakdown', {}).get('API Costs', 0):,.0f}",
+                 f"${cost_data.get('year3_breakdown', {}).get('API Costs', 0):,.0f}",
+                 f"${sum([cost_data.get(f'year{i}_breakdown', {}).get('API Costs', 0) for i in range(1,4)]):,.0f}"],
+                ['Infrastructure',
+                 f"${cost_data.get('year1_breakdown', {}).get('Infrastructure', 0):,.0f}",
+                 f"${cost_data.get('year2_breakdown', {}).get('Infrastructure', 0):,.0f}",
+                 f"${cost_data.get('year3_breakdown', {}).get('Infrastructure', 0):,.0f}",
+                 f"${sum([cost_data.get(f'year{i}_breakdown', {}).get('Infrastructure', 0) for i in range(1,4)]):,.0f}"],
+                ['Development',
+                 f"${cost_data.get('year1_breakdown', {}).get('Development', 0):,.0f}",
+                 f"${cost_data.get('year2_breakdown', {}).get('Development', 0):,.0f}",
+                 f"${cost_data.get('year3_breakdown', {}).get('Development', 0):,.0f}",
+                 f"${sum([cost_data.get(f'year{i}_breakdown', {}).get('Development', 0) for i in range(1,4)]):,.0f}"],
+                ['Data Management',
+                 f"${cost_data.get('year1_breakdown', {}).get('Data Management', 0):,.0f}",
+                 f"${cost_data.get('year2_breakdown', {}).get('Data Management', 0):,.0f}",
+                 f"${cost_data.get('year3_breakdown', {}).get('Data Management', 0):,.0f}",
+                 f"${sum([cost_data.get(f'year{i}_breakdown', {}).get('Data Management', 0) for i in range(1,4)]):,.0f}"],
+                ['Operations',
+                 f"${cost_data.get('year1_breakdown', {}).get('Operations', 0):,.0f}",
+                 f"${cost_data.get('year2_breakdown', {}).get('Operations', 0):,.0f}",
+                 f"${cost_data.get('year3_breakdown', {}).get('Operations', 0):,.0f}",
+                 f"${sum([cost_data.get(f'year{i}_breakdown', {}).get('Operations', 0) for i in range(1,4)]):,.0f}"],
+                ['Organizational',
+                 f"${cost_data.get('year1_breakdown', {}).get('Organizational', 0):,.0f}",
+                 f"${cost_data.get('year2_breakdown', {}).get('Organizational', 0):,.0f}",
+                 f"${cost_data.get('year3_breakdown', {}).get('Organizational', 0):,.0f}",
+                 f"${sum([cost_data.get(f'year{i}_breakdown', {}).get('Organizational', 0) for i in range(1,4)]):,.0f}"],
+                ['Total',
+                 f"${cost_data.get('year1_total', 0):,.0f}",
+                 f"${cost_data.get('year2_total', 0):,.0f}",
+                 f"${cost_data.get('year3_total', 0):,.0f}",
+                 f"${cost_data.get('three_year_tco', 0):,.0f}"]
+            ]
+        else:
+            # Simplified breakdown - just show totals
+            year_data = [
+                ['Period', 'Total Cost'],
+                ['Year 1', f"${cost_data.get('year1_total', 0):,.0f}"],
+                ['Year 2', f"${cost_data.get('year2_total', 0):,.0f}"],
+                ['Year 3', f"${cost_data.get('year3_total', 0):,.0f}"],
+                ['3-Year Total', f"${cost_data.get('three_year_tco', 0):,.0f}"]
+            ]
+        
+        cost_table = Table(year_data, colWidths=[1.5*inch, 1.2*inch, 1.2*inch, 1.2*inch, 1.2*inch] if has_year_breakdowns else [3*inch, 2*inch])
         cost_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -336,18 +351,25 @@ class PDFReportGenerator:
         elements.append(cost_table)
         elements.append(Spacer(1, 0.2*inch))
         
-        # Add Year 1 Cost Distribution Pie Chart
-        elements.append(Paragraph("Year 1 Cost Distribution", self.styles['CustomSubtitle']))
-        pie_chart = self._create_pie_chart(cost_data['year1_breakdown'], "Year 1 Costs by Category")
-        elements.append(pie_chart)
-        elements.append(Spacer(1, 0.2*inch))
+        # Add charts only if we have the data
+        if 'year1_breakdown' in cost_data and cost_data['year1_breakdown']:
+            # Add Year 1 Cost Distribution Pie Chart
+            elements.append(Paragraph("Year 1 Cost Distribution", self.styles['CustomSubtitle']))
+            pie_chart = self._create_pie_chart(cost_data['year1_breakdown'], "Year 1 Costs by Category")
+            elements.append(pie_chart)
+            elements.append(Spacer(1, 0.2*inch))
         
-        # Add Year-over-Year Bar Chart
-        elements.append(Paragraph("Annual Cost Trend", self.styles['CustomSubtitle']))
-        year_costs = [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']]
-        bar_chart = self._create_bar_chart(year_costs, "Total Costs by Year")
-        elements.append(bar_chart)
-        elements.append(Spacer(1, 0.2*inch))
+        # Add Year-over-Year Bar Chart if we have all year totals
+        if all(key in cost_data for key in ['year1_total', 'year2_total', 'year3_total']):
+            elements.append(Paragraph("Annual Cost Trend", self.styles['CustomSubtitle']))
+            year_costs = [
+                cost_data.get('year1_total', 0), 
+                cost_data.get('year2_total', 0), 
+                cost_data.get('year3_total', 0)
+            ]
+            bar_chart = self._create_bar_chart(year_costs, "Total Costs by Year")
+            elements.append(bar_chart)
+            elements.append(Spacer(1, 0.2*inch))
         
         return elements
     
