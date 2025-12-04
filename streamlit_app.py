@@ -353,13 +353,13 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-# Enable auto-save functionality
-enable_auto_save(interval_seconds=30)
+# Enable auto-save functionality (temporarily disabled)
+# enable_auto_save(interval_seconds=30)
 
-# Save/Load UI
-st.markdown("---")
-render_save_load_ui()
-st.markdown("---")
+# Save/Load UI (temporarily disabled)
+# st.markdown("---")
+# render_save_load_ui()
+# st.markdown("---")
 
 # Create centered tabs for navigation
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
@@ -917,13 +917,14 @@ with tab2:
             'growth_rate': growth_rate,
             'contingency_pct': contingency_pct
         }
-        errors, warnings = validate_cost_inputs(cost_inputs)
-        if errors:
-            for error in errors:
-                st.error(f"❌ {error}")
-        if warnings:
-            for warning in warnings:
-                st.warning(f"⚠️ {warning}")
+        # Validation temporarily disabled
+        # errors, warnings = validate_cost_inputs(cost_inputs)
+        # if errors:
+        #     for error in errors:
+        #         st.error(f"❌ {error}")
+        # if warnings:
+        #     for warning in warnings:
+        #         st.warning(f"⚠️ {warning}")
     except Exception as e:
         pass  # Validation is optional
     
