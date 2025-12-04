@@ -1477,15 +1477,15 @@ with tab7:
         
         with col1:
             if st.button("📄 Generate PDF Report", type="primary", use_container_width=True, key="generate_pdf_btn"):
-                with st.spinner("Generating comprehensive PDF report..."):
+                with st.spinner("Generating comprehensive 20+ page PDF report..."):
                     try:
-                        # Import PDF generator
+                        # Import comprehensive PDF generator
                         import sys
                         sys.path.append('/mnt/user-data/outputs')
-                        from pdf_report_generator import generate_pdf_report
+                        from comprehensive_pdf_generator import generate_comprehensive_pdf_report
                         
-                        # Generate PDF
-                        pdf_bytes = generate_pdf_report(
+                        # Generate comprehensive PDF
+                        pdf_bytes = generate_comprehensive_pdf_report(
                             cost_data=cost_data,
                             roi_data=st.session_state.get('roi_data', {}),
                             risk_data=st.session_state.get('risk_data', {})
@@ -1493,7 +1493,7 @@ with tab7:
                         
                         # Store in session state for download
                         st.session_state.pdf_report = pdf_bytes
-                        st.success("✅ PDF report generated successfully!")
+                        st.success("✅ Comprehensive 20+ page PDF report generated successfully!")
                     except Exception as e:
                         st.error(f"Error generating PDF: {str(e)}")
                         st.info("💡 Tip: Make sure reportlab is installed: `pip install reportlab`")
@@ -1512,12 +1512,20 @@ with tab7:
                 )
         
         with col3:
-            st.markdown("**Professional PDF report includes:**")
-            st.markdown("• Executive summary")
-            st.markdown("• Detailed cost breakdown")
-            st.markdown("• ROI analysis")
-            st.markdown("• Risk assessment")
-            st.markdown("• Strategic recommendations")
+            st.markdown("**Comprehensive 20+ Page Report includes:**")
+            st.markdown("• Executive summary & TOC")
+            st.markdown("• Methodology & assumptions")
+            st.markdown("• Detailed cost breakdown with charts")
+            st.markdown("• ROI & financial analysis")
+            st.markdown("• Risk assessment & mitigation")
+            st.markdown("• Implementation roadmap")
+            st.markdown("• Technology stack recommendations")
+            st.markdown("• Governance framework")
+            st.markdown("• Change management strategy")
+            st.markdown("• Success metrics & KPIs")
+            st.markdown("• Industry benchmarks")
+            st.markdown("• Appendices & glossary")
+
 
 # Professional Footer
 st.markdown("---")
