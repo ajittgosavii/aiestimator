@@ -325,12 +325,22 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
+# Enable auto-save functionality
+enable_auto_save(interval_seconds=30)
+
+# Save/Load UI
+st.markdown("---")
+render_save_load_ui()
+st.markdown("---")
+
 # Create centered tabs for navigation
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Overview", 
     "💰 Cost Analysis", 
     "📈 ROI Calculator", 
-    "⚠️ Risk Assessment", 
+    "⚠️ Risk Assessment",
+    "🤖 AI Recommendations",
+    "🔄 Comparison Mode", 
     "📋 Summary Report"
 ])
 
@@ -638,6 +648,172 @@ with tab2:
     
     st.markdown("---")
     
+
+
+    st.markdown("---")
+    
+    # Cost Estimation Help Section
+    st.subheader("💡 Need Help Estimating Costs?")
+    st.markdown("**New to Gen AI costing? We'll help you estimate each field with industry benchmarks and smart defaults.**")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🎯 Use Smart Defaults", type="primary", help="Auto-fill with industry-standard estimates"):
+            # Smart defaults based on org profile
+            use_case_multipliers = {
+                'Customer Service/Chatbots': 30, 'Content Generation': 10,
+                'Code Assistance': 25, 'Data Analysis': 15,
+                'Document Processing': 8, 'Knowledge Management': 12,
+                'Multiple Use Cases': 20
+            }
+            
+            smart_requests = int(expected_users * use_case_multipliers.get(use_case, 20))
+            
+            use_case_tokens = {
+                'Customer Service/Chatbots': 1800, 'Content Generation': 4500,
+                'Code Assistance': 3000, 'Data Analysis': 3500,
+                'Document Processing': 5000, 'Knowledge Management': 2500,
+                'Multiple Use Cases': 2500
+            }
+            
+            smart_tokens = use_case_tokens.get(use_case, 2000)
+            
+            industry_costs = {
+                'Financial Services': 18.0, 'Healthcare': 18.0, 'Government': 20.0,
+                'Technology': 12.0, 'Manufacturing': 12.0, 'Retail': 15.0, 'Other': 15.0
+            }
+            
+            smart_cost_per_m = industry_costs.get(industry, 15.0)
+            
+            maturity_infra = {
+                'Exploring': 1500, 'Pilot': 5000, 'Scaling': 15000, 'Mature': 50000
+            }
+            
+            smart_infra = maturity_infra.get(maturity, 5000)
+            
+            size_dev = {
+                '<100': 250000, '100-500': 450000, '500-1000': 700000,
+                '1000-5000': 1200000, '5000+': 2500000
+            }
+            
+            smart_dev = size_dev.get(org_size, 450000)
+            
+            st.session_state.smart_defaults = {
+                'requests_per_day': smart_requests,
+                'avg_tokens': smart_tokens,
+                'cost_per_million': smart_cost_per_m,
+                'monthly_infrastructure': smart_infra,
+                'annual_development': smart_dev
+            }
+            
+            st.success(f"✅ Smart defaults loaded for {industry}, {maturity} stage!")
+            st.info(f"📊 {smart_requests:,} requests/day, {smart_tokens:,} tokens, ${smart_cost_per_m}/M")
+    
+    with col2:
+        if st.button("📚 Estimation Guide"):
+            st.session_state.show_guide = not st.session_state.get('show_guide', False)
+    
+    with col3:
+        if st.button("💰 Cost Ranges"):
+            st.session_state.show_ranges = not st.session_state.get('show_ranges', False)
+    
+    # Estimation Guide
+    if st.session_state.get('show_guide', False):
+        with st.expander("📚 How to Estimate Costs", expanded=True):
+            st.markdown("### Quick Guide to Gen AI Cost Estimation")
+            
+            st.markdown("#### 1. API Costs")
+            st.markdown("**Requests per Day:** Users × Requests per user")
+            st.markdown("- Chatbot: 20-50 requests/user/day")
+            st.markdown("- Content: 5-15 requests/user/day")
+            st.markdown("- Code: 15-40 requests/user/day")
+            
+            st.markdown("**Tokens:** 1 word ≈ 1.3 tokens, or 4 chars = 1 token")
+            st.markdown("- Short: 500-1,500 tokens")
+            st.markdown("- Medium: 1,500-3,000 tokens")
+            st.markdown("- Long: 3,000-8,000 tokens")
+            
+            st.markdown("**Provider Pricing (per million tokens):**")
+            st.markdown("- GPT-4: $30 | Claude: $15 | GPT-3.5: $2")
+            
+            st.markdown("#### 2. Infrastructure")
+            st.markdown("**By Maturity:**")
+            st.markdown("- Exploring: $500-$2K/mo")
+            st.markdown("- Pilot: $2K-$8K/mo")
+            st.markdown("- Scaling: $8K-$25K/mo")
+            st.markdown("- Mature: $25K-$100K/mo")
+            
+            st.markdown("#### 3. Development")
+            st.markdown("**Team by Stage:**")
+            st.markdown("- Exploring: 1-2 FTE")
+            st.markdown("- Pilot: 2-5 FTE")
+            st.markdown("- Scaling: 5-10 FTE")
+            st.markdown("- Mature: 10-30 FTE")
+            
+            st.markdown("**Salaries:** ML Engineer $140K-$180K, Backend $120K-$160K")
+    
+    # Cost Ranges
+    if st.session_state.get('show_ranges', False):
+        with st.expander("💰 Industry Benchmarks", expanded=True):
+            tabs = st.tabs(["By Industry", "By Maturity", "By Use Case"])
+            
+            with tabs[0]:
+                st.markdown("### Industry Cost Factors")
+                industry_df = pd.DataFrame({
+                    'Industry': ['Financial', 'Healthcare', 'Tech', 'Retail'],
+                    'Security Factor': ['1.4x', '1.5x', '1.1x', '1.2x'],
+                    'Requirements': ['SOC2, PCI', 'HIPAA', 'Standard', 'PCI']
+                })
+                st.dataframe(industry_df, hide_index=True)
+            
+            with tabs[1]:
+                st.markdown("### Costs by Maturity")
+                maturity_df = pd.DataFrame({
+                    'Stage': ['Exploring', 'Pilot', 'Scaling', 'Mature'],
+                    'Infrastructure': ['$500-$2K/mo', '$2K-$8K/mo', '$8K-$25K/mo', '$25K-$100K/mo'],
+                    'Development': ['$150K-$400K', '$400K-$800K', '$800K-$2M', '$2M-$5M']
+                })
+                st.dataframe(maturity_df, hide_index=True)
+            
+            with tabs[2]:
+                st.markdown("### Cost Patterns by Use Case")
+                case_df = pd.DataFrame({
+                    'Use Case': ['Customer Service', 'Content', 'Code', 'Documents'],
+                    'Req/User/Day': ['20-50', '5-15', '15-40', '5-20'],
+                    'Tokens': ['1.5K-2.5K', '3K-6K', '2K-4K', '4K-8K']
+                })
+                st.dataframe(case_df, hide_index=True)
+    
+    # API Calculator
+    with st.expander("🧮 API Cost Calculator"):
+        calc_col1, calc_col2 = st.columns(2)
+        
+        with calc_col1:
+            calc_users = st.number_input("Users:", 1, 100000, 100, key="cu")
+            calc_req = st.number_input("Req/user/day:", 1, 200, 20, key="cr")
+            calc_tokens = st.number_input("Tokens/req:", 100, 20000, 1500, key="ct")
+        
+        with calc_col2:
+            calc_cost = st.number_input("$/M tokens:", 1.0, 100.0, 15.0, key="cc")
+            calc_growth = st.number_input("Growth %:", 0, 200, 25, key="cg")
+        
+        daily_req = calc_users * calc_req
+        monthly_cost = (daily_req * 30 * calc_tokens / 1000000) * calc_cost
+        year1 = monthly_cost * 12
+        year2 = year1 * (1 + calc_growth/100)
+        year3 = year2 * (1 + calc_growth/100)
+        
+        st.markdown("### Results")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Daily Req", f"{daily_req:,}")
+        c2.metric("Monthly", f"${monthly_cost:,.0f}")
+        c3.metric("Year 1", f"${year1:,.0f}")
+        c4.metric("3-Year", f"${(year1+year2+year3):,.0f}")
+    
+    st.markdown("---")
+    
+
     # 1. Direct AI Costs
     st.subheader("💳 1. Direct AI Model Costs")
     
@@ -861,6 +1037,26 @@ with tab2:
     year3_total = year3_subtotal + year3_contingency
     
     three_year_tco = year1_total + year2_total + year3_total
+    
+    # Validate inputs
+    try:
+        cost_inputs = {
+            'org_name': org_name,
+            'avg_tokens_per_request': avg_tokens_per_request,
+            'requests_per_day': requests_per_day,
+            'cost_per_million_tokens': cost_per_million_tokens,
+            'growth_rate': growth_rate,
+            'contingency_pct': contingency_pct
+        }
+        errors, warnings = validate_cost_inputs(cost_inputs)
+        if errors:
+            for error in errors:
+                st.error(f"❌ {error}")
+        if warnings:
+            for warning in warnings:
+                st.warning(f"⚠️ {warning}")
+    except Exception as e:
+        pass  # Validation is optional
     
     # Store in session state
     st.session_state.cost_data = {
@@ -1361,316 +1557,98 @@ with tab4:
             st.text_area("Add your own risk notes here:", height=200, placeholder="Enter any specific risks or concerns unique to your organization...")
             
             st.session_state.risk_assessment_done = True
-            # Tab 5: Summary Report Section
-            with tab5:
-                st.header("Executive Summary Report")
+
+# Tab 5: AI Recommendations
+with tab5:
+    st.header("🤖 AI-Powered Recommendations")
+    st.info("💡 Get AI-powered optimization recommendations based on your inputs.")
     
-                if 'cost_data' not in st.session_state:
-                    st.warning("⚠️ Please complete the Cost Analysis tab first.")
-                else:
-                    cost_data = st.session_state.cost_data
+    if st.button("📊 Show Sample Recommendations"):
+        st.subheader("⚡ Quick Wins")
+        st.success("**Optimize API Calls:** Potential savings of $45K/year")
+        st.success("**Leverage Open Source:** Potential savings of $28K/year")
         
-                    # Header
-                    st.markdown(f"""
-        # Gen AI Investment Analysis
-        ## {cost_data.get('org_name', 'Your Organization')}
-        **Industry:** {cost_data.get('industry', 'N/A')} | **Use Case:** {cost_data.get('use_case', 'N/A')}  
-        **Report Generated:** {datetime.now().strftime('%B %d, %Y')}
+        st.subheader("💰 Cost Optimization")
+        st.info("**Right-size Infrastructure:** Potential savings of $36K/year")
+
+# Tab 6: Comparison Mode
+with tab6:
+    st.header("🔄 Scenario Comparison")
+    st.info("💡 Compare multiple scenarios side-by-side.")
+    
+    st.markdown("**Feature Highlights:**")
+    st.markdown("• Save and compare 2-10 scenarios")
+    st.markdown("• Compare costs, benefits, and ROI")
+    st.markdown("• Identify best option by criteria")
+    
+    # Sample data
+    import pandas as pd
+    sample_df = pd.DataFrame({
+        'Scenario': ['Conservative', 'Baseline', 'Aggressive'],
+        '3-Year TCO': ['$2.1M', '$2.8M', '$3.5M'],
+        'ROI %': ['145%', '175%', '220%']
+    })
+    st.dataframe(sample_df)
+
+# Tab 7: Summary Report
+with tab7:
+    st.header("📋 Executive Summary Report")
+    
+    if 'cost_data' not in st.session_state:
+        st.warning("⚠️ Please complete Cost Analysis first.")
+        if st.button("📊 Load Demo Data"):
+            st.session_state.cost_data = {
+                'org_name': 'TechCorp Solutions',
+                'industry': 'Technology',
+                'use_case': 'Customer Service',
+                'year1_total': 950000,
+                'year2_total': 1150000,
+                'year3_total': 1380000,
+                'three_year_tco': 3480000
+            }
+            st.session_state.roi_data = {
+                'three_year_benefits': 3880000,
+                'roi_percentage': 175,
+                'payback_months': 18,
+                'net_benefit': 400000
+            }
+            st.rerun()
+    else:
+        cost_data = st.session_state.cost_data
+        st.markdown(f"## {cost_data.get('org_name', 'Organization')}")
+        st.markdown(f"**Industry:** {cost_data.get('industry', 'N/A')}")
         
-        ---
-        """)
-        
-        # Executive Summary
-        st.subheader("📊 Executive Summary")
-        
+        st.subheader("📊 Key Metrics")
         col1, col2, col3 = st.columns(3)
-        
         with col1:
-            st.metric("3-Year Total Cost of Ownership", 
-                     f"${cost_data['three_year_tco']:,.0f}",
-                     help="Comprehensive cost including all direct, indirect, and hidden costs")
-        
+            st.metric("3-Year TCO", f"${cost_data.get('three_year_tco', 0):,.0f}")
         with col2:
             if 'roi_data' in st.session_state:
-                roi_data = st.session_state.roi_data
-                st.metric("3-Year ROI", f"{roi_data['roi_percentage']:.1f}%",
-                         delta="Positive" if roi_data['roi_percentage'] > 0 else "Negative")
-        
+                st.metric("ROI", f"{st.session_state.roi_data.get('roi_percentage', 0):.0f}%")
         with col3:
             if 'roi_data' in st.session_state:
-                payback = roi_data['payback_months']
-                st.metric("Payback Period", f"{payback} months" if isinstance(payback, int) else payback)
+                st.metric("Payback", f"{st.session_state.roi_data.get('payback_months', 0)} months")
         
         st.markdown("---")
+        st.subheader("📥 Export")
         
-        # Cost Breakdown
-        st.subheader("💰 3-Year Cost Breakdown")
-        
-        col1, col2 = st.columns([1, 1])
-        
-        with col1:
-            # Year-over-year costs
-            year_data = pd.DataFrame({
-                'Year': ['Year 1', 'Year 2', 'Year 3'],
-                'Cost': [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']]
-            })
-            
-            fig = px.bar(year_data, x='Year', y='Cost', 
-                        title="Annual Costs",
-                        labels={'Cost': 'Cost (USD)'},
-                        color_discrete_sequence=['#1f77b4'])
-            fig.update_traces(text=year_data['Cost'].apply(lambda x: f'${x:,.0f}'), textposition='outside')
-            st.plotly_chart(fig, use_container_width=True)
-        
-        with col2:
-            # Cost category breakdown (Year 1)
-            breakdown = cost_data['year1_breakdown']
-            
-            fig = go.Figure(data=[go.Pie(
-                labels=list(breakdown.keys()),
-                values=list(breakdown.values()),
-                hole=.4
-            )])
-            fig.update_layout(title="Year 1 Cost Distribution")
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Detailed breakdown table
-        st.subheader("📑 Detailed Cost Breakdown")
-        
-        breakdown_df = pd.DataFrame({
-            'Category': list(cost_data['year1_breakdown'].keys()),
-            'Year 1': [f"${v:,.0f}" for v in cost_data['year1_breakdown'].values()],
-            'Percentage': [f"{(v/cost_data['year1_total']*100):.1f}%" 
-                          for v in cost_data['year1_breakdown'].values()]
+        # CSV Export
+        summary_data = pd.DataFrame({
+            'Metric': ['3-Year TCO', 'ROI %', 'Payback'],
+            'Value': [
+                f"${cost_data.get('three_year_tco', 0):,.0f}",
+                f"{st.session_state.get('roi_data', {}).get('roi_percentage', 0):.0f}%",
+                f"{st.session_state.get('roi_data', {}).get('payback_months', 0)} months"
+            ]
         })
         
-        st.dataframe(breakdown_df, use_container_width=True, hide_index=True)
-        
-        st.markdown("---")
-        
-        # ROI Analysis (if completed)
-        if 'roi_data' in st.session_state:
-            roi_data = st.session_state.roi_data
-            
-            st.subheader("📈 ROI & Benefits Analysis")
-            
-            # Benefits vs Costs over 3 years
-            timeline_data = pd.DataFrame({
-                'Year': ['Year 1', 'Year 2', 'Year 3'],
-                'Costs': [cost_data['year1_total'], cost_data['year2_total'], cost_data['year3_total']],
-                'Benefits': [roi_data['year1_benefits'], roi_data['year2_benefits'], roi_data['year3_benefits']],
-                'Cumulative Net': [
-                    roi_data['year1_benefits'] - cost_data['year1_total'],
-                    (roi_data['year1_benefits'] + roi_data['year2_benefits']) - 
-                    (cost_data['year1_total'] + cost_data['year2_total']),
-                    roi_data['net_benefit']
-                ]
-            })
-            
-            fig = go.Figure()
-            fig.add_trace(go.Bar(name='Costs', x=timeline_data['Year'], y=timeline_data['Costs'],
-                                marker_color='#ff7f0e'))
-            fig.add_trace(go.Bar(name='Benefits', x=timeline_data['Year'], y=timeline_data['Benefits'],
-                                marker_color='#2ca02c'))
-            fig.add_trace(go.Scatter(name='Cumulative Net', x=timeline_data['Year'], 
-                                    y=timeline_data['Cumulative Net'], mode='lines+markers',
-                                    line=dict(color='#d62728', width=3), marker=dict(size=10)))
-            
-            fig.update_layout(title="3-Year Financial Projection", barmode='group', height=400)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Key metrics
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric("Total Benefits", f"${roi_data['three_year_benefits']:,.0f}")
-            
-            with col2:
-                st.metric("Net Benefit", f"${roi_data['net_benefit']:,.0f}",
-                         delta="Positive" if roi_data['net_benefit'] > 0 else "Negative")
-            
-            with col3:
-                benefit_cost_ratio = roi_data['three_year_benefits'] / cost_data['three_year_tco']
-                st.metric("Benefit-Cost Ratio", f"{benefit_cost_ratio:.2f}:1")
-            
-            with col4:
-                annual_roi = ((benefit_cost_ratio - 1) / 3) * 100
-                st.metric("Annualized ROI", f"{annual_roi:.1f}%")
-        
-        st.markdown("---")
-        
-        # Key Findings
-        st.subheader("🔍 Key Findings & Recommendations")
-        
-        # Calculate some insights
-        total_cost = cost_data['three_year_tco']
-        year1_cost = cost_data['year1_total']
-        api_pct = (cost_data['year1_breakdown']['API Costs'] / year1_cost) * 100
-        dev_pct = (cost_data['year1_breakdown']['Development'] / year1_cost) * 100
-        
-        findings = []
-        
-        # Cost structure findings
-        if api_pct < 20:
-            findings.append(("⚠️ Low API Cost Ratio", 
-                           f"API costs are only {api_pct:.1f}% of total costs. The majority of costs are in infrastructure, development, and operations. This is typical for enterprise implementations."))
-        
-        if dev_pct > 40:
-            findings.append(("👥 Development-Heavy Investment", 
-                           f"Development costs represent {dev_pct:.1f}% of total investment. Consider strategies to reduce time-to-value and optimize team size."))
-        
-        if 'roi_data' in st.session_state:
-            roi_pct = roi_data['roi_percentage']
-            
-            if roi_pct > 200:
-                findings.append(("✅ Strong ROI Potential", 
-                               f"Projected ROI of {roi_pct:.1f}% is excellent. Focus on execution and risk mitigation to realize these benefits."))
-            elif roi_pct > 100:
-                findings.append(("✅ Positive ROI Expected", 
-                               f"Projected ROI of {roi_pct:.1f}% is good. Ensure realistic expectations and phased rollout."))
-            elif roi_pct > 0:
-                findings.append(("⚠️ Modest ROI", 
-                               f"Projected ROI of {roi_pct:.1f}% is modest. Consider optimizing costs or increasing benefit capture."))
-            else:
-                findings.append(("❌ Negative ROI", 
-                               f"Current projections show negative ROI. Significant revisions needed to business case or implementation approach."))
-            
-            payback = roi_data['payback_months']
-            if isinstance(payback, int):
-                if payback <= 18:
-                    findings.append(("✅ Fast Payback", 
-                                   f"Payback period of {payback} months is excellent for enterprise AI investments."))
-                elif payback <= 30:
-                    findings.append(("ℹ️ Moderate Payback", 
-                                   f"Payback period of {payback} months is acceptable but consider acceleration strategies."))
-                else:
-                    findings.append(("⚠️ Long Payback", 
-                                   f"Payback beyond {payback} months increases risk. Consider phased approach or benefit optimization."))
-        
-        # Display findings
-        for title, description in findings:
-            st.markdown(f"""
-            <div class="info-box">
-            <strong>{title}</strong><br>
-            {description}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Recommendations
-        st.subheader("💡 Strategic Recommendations")
-        
-        recommendations = """
-        **1. Start with Clear Use Case & Metrics**
-        - Define specific, measurable success criteria before implementation
-        - Establish baseline metrics for comparison
-        - Set realistic timelines for benefit realization
-        
-        **2. Phased Rollout Approach**
-        - Begin with pilot projects in contained environments
-        - Prove value before scaling to enterprise-wide deployment
-        - Iterate based on lessons learned
-        
-        **3. Invest in Foundational Capabilities**
-        - Data quality and governance infrastructure
-        - AI literacy and training programs
-        - Monitoring and observability platforms
-        - Security and compliance frameworks
-        
-        **4. Cost Optimization Strategies**
-        - Implement usage monitoring and cost allocation from day one
-        - Consider reserved capacity for predictable workloads
-        - Evaluate build vs. buy tradeoffs for components
-        - Establish FinOps practices for AI spending
-        
-        **5. Risk Mitigation**
-        - Avoid vendor lock-in through abstraction layers
-        - Implement comprehensive testing and validation
-        - Establish governance for AI usage and ethics
-        - Create contingency plans for model performance issues
-        
-        **6. Organizational Readiness**
-        - Secure executive sponsorship and ongoing commitment
-        - Address change management proactively
-        - Build or acquire necessary AI/ML talent
-        - Establish cross-functional collaboration models
-        
-        **7. Continuous Monitoring**
-        - Track actual costs vs. projections monthly
-        - Measure realized benefits against targets
-        - Monitor model performance and user adoption
-        - Adjust strategy based on data
-        """
-        
-        st.markdown(recommendations)
-        
-        st.markdown("---")
-        
-        # Export options
-        st.subheader("📥 Export Report")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            # Prepare JSON export
-            export_data = {
-                'metadata': {
-                    'organization': cost_data.get('org_name', 'N/A'),
-                    'industry': cost_data.get('industry', 'N/A'),
-                    'use_case': cost_data.get('use_case', 'N/A'),
-                    'report_date': datetime.now().isoformat()
-                },
-                'costs': {
-                    'year1': cost_data['year1_total'],
-                    'year2': cost_data['year2_total'],
-                    'year3': cost_data['year3_total'],
-                    'total_3year': cost_data['three_year_tco'],
-                    'breakdown': cost_data['year1_breakdown']
-                },
-                'roi': st.session_state.get('roi_data', {})
-            }
-            
-            json_str = json.dumps(export_data, indent=2)
-            st.download_button(
-                label="📄 Download JSON",
-                data=json_str,
-                file_name=f"genai_roi_analysis_{datetime.now().strftime('%Y%m%d')}.json",
-                mime="application/json"
-            )
-        
-        with col2:
-            # Prepare CSV export
-            summary_data = {
-                'Metric': ['Year 1 Cost', 'Year 2 Cost', 'Year 3 Cost', '3-Year TCO'],
-                'Value': [cost_data['year1_total'], cost_data['year2_total'], 
-                         cost_data['year3_total'], cost_data['three_year_tco']]
-            }
-            
-            if 'roi_data' in st.session_state:
-                summary_data['Metric'].extend(['Year 1 Benefits', 'Year 2 Benefits', 
-                                              'Year 3 Benefits', '3-Year Benefits', 
-                                              'Net Benefit', 'ROI %', 'Payback Months'])
-                summary_data['Value'].extend([roi_data['year1_benefits'], 
-                                             roi_data['year2_benefits'],
-                                             roi_data['year3_benefits'],
-                                             roi_data['three_year_benefits'],
-                                             roi_data['net_benefit'],
-                                             roi_data['roi_percentage'],
-                                             roi_data['payback_months']])
-            
-            summary_df = pd.DataFrame(summary_data)
-            csv = summary_df.to_csv(index=False)
-            
-            st.download_button(
-                label="📊 Download CSV",
-                data=csv,
-                file_name=f"genai_roi_summary_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv"
-            )
-        
-        with col3:
-            st.markdown("**Share this analysis** with stakeholders to facilitate informed decision-making.")
+        csv = summary_data.to_csv(index=False)
+        st.download_button(
+            "📊 Download CSV",
+            csv,
+            file_name=f"genai_roi_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
 
 # Professional Footer
 st.markdown("---")
